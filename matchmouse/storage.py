@@ -17,5 +17,21 @@ You should have received a copy of the GNU General Public License along
 with MatchMouse.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-__all__ = ['browser','storage','syncher']
+import sqlite3
+
+class MatchMouseStorage():
+
+   cur = None
+   db = None
+   db_path = ''
+
+   def __init__( self, db_path ):
+
+      self.db_path = db_path
+      self.db = sqlite3.connect( db_path ):
+
+      self.cur.execute(
+         'CREATE TABLE bookmarks ' + \
+            '(title text, url text, tags text, path text)'
+      )
 

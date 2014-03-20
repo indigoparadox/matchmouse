@@ -20,6 +20,7 @@ with MatchMouse.  If not, see <http://www.gnu.org/licenses/>.
 import sys
 import gtk
 import webkit
+import urllib.parse as urlparse
 
 class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
@@ -48,6 +49,24 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       filemenu.append( exitm )
 
       mb.append( filem )
+
+      # Create the bookmarks menu.
+      bookmarksmenu = gtk.Menu()
+      bookmarksm = gtk.MenuItem( 'Bookmarks' )
+      bookmarksm.set_submenu( bookmarksmenu )
+
+      mb.append( bookmarksm )
+
+      # Create the tools menu.
+      toolsmenu = gtk.Menu()
+      toolsm = gtk.MenuItem( 'Tools' )
+      toolsm.set_submenu( toolsmenu )
+
+      syncm = gtk.MenuItem( 'Sync Now' )
+      syncm.connect( 'activate', self.on_sync )
+      toolsmenu.append( syncm )
+
+      mb.append( toolsm )
 
       # Create the web controls.
       self.txt_url = gtk.Entry()
@@ -78,5 +97,8 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       self.web_view.open( url )
 
    def on_open( self, widget ):
+      pass
+
+   def on_sync( self, widget ):
       pass
 
