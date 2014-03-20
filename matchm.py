@@ -17,3 +17,12 @@ You should have received a copy of the GNU General Public License along
 with MatchMouse.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import matchmouse.browser as browser
+
+def main():
+   #Gtk.gdk.threads_init()
+   browser.MatchMouseBrowser()
+
+if '__main__' == __name__:
+   main()
+
