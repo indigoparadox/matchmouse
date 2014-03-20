@@ -18,8 +18,12 @@ with MatchMouse.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 import matchmouse.browser as browser
+import logging
 
 def main():
+
+   logging.basicConfig( level=logging.DEBUG )
+
    #Gtk.gdk.threads_init()
    browser.MatchMouseBrowser()
 
