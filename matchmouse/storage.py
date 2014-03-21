@@ -19,6 +19,7 @@ with MatchMouse.  If not, see <http://www.gnu.org/licenses/>.
 
 import sqlite3
 import logging
+import json
 
 RO_SYSTEM_OPTIONS = ['version']
 
@@ -46,10 +47,15 @@ class MatchMouseStorage():
          self.cur.execute( 'INSERT INTO system VALUES(?, ?)', ('version', '1') )
          self.cur.execute(
             'CREATE TABLE bookmarks ' + \
-               '(title text, url text, tags text, path text)'
+               '(id text, title text, url text, tags text, keyword text, ' + \
+               'parent text, type text)'
          )
+         self.cur.execute( 'CREATE UNIQUE INDEX id ON bookmarks (id)' )
       else:
          self.logger.debug( 'Storage DB version is: {}'.format( db_version ) )
+
+   def shutdown( self ):
+      self.db.close()
 
    def get_option( self, key ):
 
@@ -82,6 +88,37 @@ class MatchMouseStorage():
             'UPDATE system SET value=? WHERE key=?', (value, key)
          )
 
-   def add_bookmark( self, title, url, tags, path ):
+   def get_bookmark( self, bm_id ):
+      
+      try:
+         self.cur.execute( 'SELECT * FROM bookmarks WHERE id=?', (bm_id,) )
+         for row in self.cur.fetchall():
+            return row
+      except sqlite3.OperationalError:
+         self.logger.debug( 'Bookmark "{}" not found.'.format( bm_id ) )
+
+      return None
+
+   def set_bookmark( self, bm_id, title, url, tags, keyword, parent, bm_type ):
+
+      # Are we inserting a new bookmark or updating an existing bookmark?
+      if None == self.get_bookmark( bm_id ):
+         # Inserting.
+         self.cur.execute(
+            'INSERT INTO bookmarks ' + \
+               '(id, title, url, tags, keyword, parent, type) ' + \
+               'VALUES(?, ?, ?, ?, ?, ?, ?)',
+            (bm_id, title, url, json.dumps( tags ), keyword, parent, bm_type)
+         )
+      else:
+         # Updating.
+         self.cur.execute(
+            'UPDATE bookmarks ' + \
+               'SET title=?, url=?, tags=?, keyword=?, parent=?, type=? ' + \
+               'WHERE id=?',
+            (title, url, json.dumps( tags ), keyword, parent, bm_type, bm_id)
+         )
+
+   def delete_bookmark( self, bm_id ):
       pass
 
