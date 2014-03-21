@@ -1,0 +1,14 @@
+
+= Immediate Goals =
+
+* Download bookmarks from a local Firefox Sync/Weave server.
+
+= Later Goals =
+
+* Bookmark editing and two-way synchronization.
+* (Relatively) secure password management. Maybe using TPM or similar.
+* Privacy tools (Ad Block Plus/RequestPolicy/NoScript/Cookie Monster/RefControl)
+  built-in.
+* User styles/scripts.
+* HTTPS enforcement.
+
