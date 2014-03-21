@@ -137,23 +137,44 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       self.window.set_title( 'MatchMouse - {}'.format( url ) )
       self.web_view.open( url )
 
-   def rebuild_bookmarks( self, reload=True ):
-      
-      my_storage = storage.MatchMouseStorage( STORAGE_PATH )
-      self.bookmarks = my_storage.list_bookmarks()
+   def _rebuild_bookmark_menu( self, bm_parent ):
       bookmarksmenu = gtk.Menu()
-
-      for bookmark_iter in self.bookmarks:
-         print bookmark_iter['title']
+      for bookmark_iter in bm_parent:
          bmm_iter = gtk.MenuItem( bookmark_iter['title'] )
-         #syncm.connect( 'activate', lambda x:  )
+
+         # Create link/submenu as appropriate.
+         if 'folder' == bookmark_iter['type']:
+            submenu = self._rebuild_bookmark_menu( bookmark_iter['children'] )
+            bmm_iter.set_submenu( submenu )
+         elif 'bookmark' == bookmark_iter['type']:
+            bmm_iter.connect( 'activate', self._on_open_bookmark )
+            bmm_iter.bm_url = bookmark_iter['url']
+         else:
+            # Skip queries or other types.
+            continue
+
          bookmarksmenu.append( bmm_iter )
 
+      return bookmarksmenu
+
+   def rebuild_bookmarks( self, reload=True ):
+
+      ''' Rebuild the bookmarks menu from storage. '''
+      
+      # Grab bookmarks from storage.
+      my_storage = storage.MatchMouseStorage( STORAGE_PATH )
+      self.bookmarks = my_storage.list_bookmarks()
+
+      # Put up the menus.
+      bookmarksmenu = self._rebuild_bookmark_menu( self.bookmarks )
       self.bookmarksm.set_submenu( bookmarksmenu )
       self.window.show_all()
 
    def _on_txt_url_activate( self, entry ):
       self.open( entry.get_text(), False )
+
+   def _on_open_bookmark( self, widget ):
+      self.open( widget.bm_url, True )
 
    def _on_open( self, widget ):
       pass
