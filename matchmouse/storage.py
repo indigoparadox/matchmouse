@@ -54,7 +54,12 @@ class MatchMouseStorage():
       else:
          self.logger.debug( 'Storage DB version is: {}'.format( db_version ) )
 
-   def shutdown( self ):
+      self.db.commit()
+
+   def commit( self ):
+      self.db.commit()
+
+   def close( self ):
       self.db.close()
 
    def get_option( self, key ):

@@ -21,9 +21,8 @@ import sys
 import gtk
 import webkit
 import logging
-import syncher
 import storage
-from yaml import load, dump
+import syncstorage
 try:
    import urllib.parse as urlparse
 except:
@@ -32,6 +31,9 @@ except:
 STATUSBAR_CONTEXT_LOADING = 1
 STATUSBAR_CONTEXT_SYNCING = 2
 
+STORAGE_PATH = 'storage.db'
+SYNCHER_CONFIG_PATH = 'sync.yaml'
+
 class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
    window = None
@@ -39,8 +41,6 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
    txt_url = None
    logger = None
    data = None
-   syncher = None
-   storage = None
 
    def __init__( self ):
 
@@ -109,18 +109,8 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       self.window.show_all()
 
       # Setup storage.
-      self.storage = storage.MatchMouseStorage( 'storage.db' )
-
-      # TODO: Put this somewhere more sensible.
-      with open( 'sync.yaml' ) as sync_config_file:
-         sync_config = load( sync_config_file )
-      self.syncher = syncher.MatchMouseSyncher(
-         self,
-         sync_config['Server'],
-         sync_config['Username'],
-         sync_config['Password'],
-         sync_config['Key']
-      )
+      # TODO: Only open storage when we need it.
+      #self.storage = storage.MatchMouseStorage( STORAGE_PATH )
 
       gtk.main()
 
@@ -157,11 +147,22 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       self.statusbar.pop( STATUSBAR_CONTEXT_LOADING )
 
    def _on_sync( self, widget ):
+      # TODO: Put sync in a separate thread.
+      #self.syncher.sync()
+
       self.statusbar.push( STATUSBAR_CONTEXT_SYNCING, 'Syncing...' )
-      self.syncher.sync()
+      storage_sync = syncstorage.MatchMouseSyncStorage(
+         self, SYNCHER_CONFIG_PATH, STORAGE_PATH
+      )
+      storage_sync.start()
+
+   def on_sync_complete( self ):
       self.statusbar.pop( STATUSBAR_CONTEXT_SYNCING )
+      self.storage = storage.MatchMouseStorage( STORAGE_PATH )
 
    def _on_quit( self, widget ):
-      self.storage.shutdown()
+      #if None != self.storage:
+      #   self.storage.commit()
+      #   self.storage.close()
       gtk.main_quit()
 
