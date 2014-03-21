@@ -183,6 +183,7 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       self.statusbar.pop( STATUSBAR_CONTEXT_SYNCING )
       #self.storage = storage.MatchMouseStorage( STORAGE_PATH )
       self.synching = False
+      self.rebuild_bookmarks()
 
    def _on_quit( self, widget ):
       #if None != self.storage:

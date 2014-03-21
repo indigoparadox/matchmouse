@@ -64,8 +64,8 @@ class MatchMouseSyncStorage( threading.Thread ):
             #       accordingly.
             bookmark_iter = my_syncher.request_bookmark( bookmark_id_iter )
             if 'deleted' in bookmark_iter.keys() and bookmark_iter['deleted']:
-               # TODO: Delete bookmark if it exists.
-               pass
+               # Delete bookmark if it exists.
+               my_storage.delete_bookmark( bookmark_iter['id'] )
             else:
                
                # Make sure each bookmark/item is valid.
