@@ -35,6 +35,9 @@ class MatchMouseStorage():
 
       self.db_path = db_path
       self.db = sqlite3.connect( db_path )
+
+      self.db.row_factory = sqlite3.Row
+
       self.cur = self.db.cursor()
 
       db_version = self.get_option( 'version' )
@@ -92,6 +95,34 @@ class MatchMouseStorage():
          self.cur.execute(
             'UPDATE system SET value=? WHERE key=?', (value, key)
          )
+
+   def _list_bookmarks_children( self, folder_id ):
+
+      bookmarks_branch = []
+      try:
+         self.cur.execute(
+            'SELECT * FROM bookmarks WHERE parent=?', (folder_id,)
+         )
+         for row in self.cur.fetchall():
+            # Use a proper dict we can manipulate.
+            row = dict( row )
+
+            if 'folder' == row['type']:
+               # Recursively fetch children.
+               row['children'] = self._list_bookmarks_children( row['id'] )
+
+            # Add the whole mess to the tree.
+            bookmarks_branch.append( row )
+      except sqlite3.OperationalError:
+         pass
+
+      return bookmarks_branch
+
+   def list_bookmarks( self ):
+
+      bookmarks_root = self._list_bookmarks_children( 'menu' )
+
+      return bookmarks_root
 
    def get_bookmark( self, bm_id ):
       
