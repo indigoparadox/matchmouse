@@ -1,9 +1,16 @@
 
-= Immediate Goals =
+= Requirements =
+
+* requests
+* pyyaml
+
+= Goals =
+
+== Immediate Goals ==
 
 * Download bookmarks from a local Firefox Sync/Weave server.
 
-= Later Goals =
+== Later Goals ==
 
 * Bookmark editing and two-way synchronization.
 * (Relatively) secure password management. Maybe using TPM or similar.
