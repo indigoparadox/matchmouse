@@ -41,6 +41,7 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
    txt_url = None
    logger = None
    data = None
+   synching = False
 
    def __init__( self ):
 
@@ -150,15 +151,18 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       # TODO: Put sync in a separate thread.
       #self.syncher.sync()
 
-      self.statusbar.push( STATUSBAR_CONTEXT_SYNCING, 'Syncing...' )
-      storage_sync = syncstorage.MatchMouseSyncStorage(
-         self, SYNCHER_CONFIG_PATH, STORAGE_PATH
-      )
-      storage_sync.start()
+      if not self.synching:
+         self.statusbar.push( STATUSBAR_CONTEXT_SYNCING, 'Syncing...' )
+         self.synching = True
+         storage_sync = syncstorage.MatchMouseSyncStorage(
+            self, SYNCHER_CONFIG_PATH, STORAGE_PATH
+         )
+         storage_sync.start()
 
    def on_sync_complete( self ):
       self.statusbar.pop( STATUSBAR_CONTEXT_SYNCING )
-      self.storage = storage.MatchMouseStorage( STORAGE_PATH )
+      #self.storage = storage.MatchMouseStorage( STORAGE_PATH )
+      self.synching = False
 
    def _on_quit( self, widget ):
       #if None != self.storage:
