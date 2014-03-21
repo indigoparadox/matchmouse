@@ -125,3 +125,5 @@ class MatchMouseSyncher():
          #       accordingly.
          pass
 
+      # TODO: Set lastsync option in storage to current time on success.
+
