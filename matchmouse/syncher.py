@@ -120,10 +120,45 @@ class MatchMouseSyncher():
       return self._request_path( 'storage/bookmarks' )
 
    def sync( self ):
-      for bookmark_id_iter in self.list_remote_bookmarks():
+      for bookmark_id_iter in self.list_remote_bookmarks()[:5]:
          # TODO: Check if bookmark exists in storage and add/remove it
          #       accordingly.
-         pass
+         bookmark_iter = self.request_bookmark( bookmark_id_iter )
+         if 'deleted' in bookmark_iter.keys() and bookmark_iter['deleted']:
+            # TODO: Delete bookmark if it exists.
+            pass
+         else:
+            # Make sure data is valid to insert.
+            if 'bmkUri' in bookmark_iter.keys():
+               bm_uri = bookmark_iter['bmkUri']
+            else:
+               bm_uri = ''
+
+            if 'tags' in bookmark_iter.keys():
+               bm_tags = bookmark_iter['tags']
+            else:
+               bm_tags = ''
+
+            if 'keyword' in bookmark_iter.keys():
+               bm_keyword = bookmark_iter['keyword']
+            else:
+               bm_keyword = ''
+
+            for key_iter in bookmark_iter.keys():
+               if None == bookmark_iter[key_iter]:
+                  bookmark_iter[key_iter] = ''
+
+            # Perform the update.
+            self.browser.storage.set_bookmark(
+               bookmark_iter['id'],
+               bookmark_iter['title'],
+               bm_uri,
+               bm_tags,
+               bm_keyword,
+               bookmark_iter['parentid'],
+               bookmark_iter['type']
+            )
+      self.browser.storage.db.commit()
 
       # TODO: Set lastsync option in storage to current time on success.
 

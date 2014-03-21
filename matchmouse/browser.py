@@ -47,7 +47,7 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       self.logger = logging.getLogger( 'matchmouse.browser' )
 
       self.window = gtk.Window()
-      self.window.connect( 'delete_event', gtk.main_quit )
+      self.window.connect( 'delete_event', self._on_quit )
 
       mb = gtk.MenuBar()
 
@@ -61,7 +61,7 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       filemenu.append( openm )
 
       exitm = gtk.MenuItem( 'Exit' )
-      exitm.connect( 'activate', gtk.main_quit )
+      exitm.connect( 'activate', self._on_quit )
       filemenu.append( exitm )
 
       mb.append( filem )
@@ -160,4 +160,8 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       self.statusbar.push( STATUSBAR_CONTEXT_SYNCING, 'Syncing...' )
       self.syncher.sync()
       self.statusbar.pop( STATUSBAR_CONTEXT_SYNCING )
+
+   def _on_quit( self, widget ):
+      self.storage.shutdown()
+      gtk.main_quit()
 
