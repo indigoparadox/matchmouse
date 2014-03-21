@@ -156,5 +156,6 @@ class MatchMouseStorage():
          )
 
    def delete_bookmark( self, bm_id ):
-      pass
+      self.logger.debug( 'Deleting bookmark: {}'.format( bm_id ) )
+      self.cur.execute( 'DELETE FROM bookmarks WHERE id=?', (bm_id,) )
 
