@@ -22,6 +22,7 @@ import gtk
 import webkit
 import logging
 import syncher
+import storage
 from yaml import load, dump
 try:
    import urllib.parse as urlparse
@@ -29,6 +30,7 @@ except:
    import urlparse
 
 STATUSBAR_CONTEXT_LOADING = 1
+STATUSBAR_CONTEXT_SYNCING = 2
 
 class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
@@ -38,6 +40,7 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
    logger = None
    data = None
    syncher = None
+   storage = None
 
    def __init__( self ):
 
@@ -105,6 +108,9 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       self.window.add( vbox )
       self.window.show_all()
 
+      # Setup storage.
+      self.storage = storage.MatchMouseStorage( 'storage.db' )
+
       # TODO: Put this somewhere more sensible.
       with open( 'sync.yaml' ) as sync_config_file:
          sync_config = load( sync_config_file )
@@ -151,5 +157,7 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       self.statusbar.pop( STATUSBAR_CONTEXT_LOADING )
 
    def _on_sync( self, widget ):
+      self.statusbar.push( STATUSBAR_CONTEXT_SYNCING, 'Syncing...' )
       self.syncher.sync()
+      self.statusbar.pop( STATUSBAR_CONTEXT_SYNCING )
 
