@@ -21,6 +21,8 @@ import sys
 import gtk
 import webkit
 import logging
+import syncher
+from yaml import load, dump
 try:
    import urllib.parse as urlparse
 except:
@@ -34,6 +36,8 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
    web_view = None
    txt_url = None
    logger = None
+   data = None
+   syncher = None
 
    def __init__( self ):
 
@@ -101,6 +105,17 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       self.window.add( vbox )
       self.window.show_all()
 
+      # TODO: Put this somewhere more sensible.
+      with open( 'sync.yaml' ) as sync_config_file:
+         sync_config = load( sync_config_file )
+      self.syncher = syncher.MatchMouseSyncher(
+         self,
+         sync_config['Server'],
+         sync_config['Username'],
+         sync_config['Password'],
+         sync_config['Key']
+      )
+
       gtk.main()
 
    def open( self, url, sync_txt=True ):
@@ -136,5 +151,5 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       self.statusbar.pop( STATUSBAR_CONTEXT_LOADING )
 
    def _on_sync( self, widget ):
-      pass
+      self.syncher.sync()
 
