@@ -45,6 +45,7 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
    bookmarks = {}
    bookmarksm = None
    tabbook = None
+   bm_bar = None
 
    def __init__( self ):
 
@@ -92,6 +93,9 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
       mb.append( toolsm )
 
+      # Add a bookmarks toolbar.
+      self.bm_bar = Gtk.Toolbar()
+
       # Create the tab notebook.
       self.tabbook = Gtk.Notebook()
       #self.tabbook.set_tab_pos( Gtk.POS_TOP )
@@ -103,6 +107,7 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       vbox = Gtk.VBox( spacing=5 )
       vbox.set_border_width( 5 )
       vbox.pack_start( mb, False, False, 0 )
+      vbox.pack_start( self.bm_bar, False, False, 0 )
       vbox.pack_start( self.tabbook, True, True, 0 )
       vbox.pack_start( self.statusbar, False, False, 0 )
       self.window.add( vbox )
@@ -172,6 +177,31 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
       return bookmarksmenu
 
+   def _rebuild_bookmark_tb( self, bm_parent ):
+
+      for index_iter in range( self.bm_bar.get_n_items(), 0 ):
+         self.bm_bar.remove( index_iter )
+      
+      for bookmark_iter in bm_parent:
+         bmb_img_iter = Gtk.Image()
+         bmb_img_iter.set_from_icon_name( 
+            'image-missing', Gtk.IconSize.SMALL_TOOLBAR
+         )
+
+         bmb_label_iter = Gtk.Label( bookmark_iter['title'] )
+
+         hbox_iter = Gtk.HBox()
+         hbox_iter.pack_start( bmb_img_iter, False, False, 0 )
+         hbox_iter.pack_start( bmb_label_iter, False, False, 0 )
+
+         bmb_iter = Gtk.ToolButton( label_widget=hbox_iter )
+
+         if 'bookmark' == bookmark_iter['type']:
+            bmb_iter.connect( 'clicked', self._on_open_bookmark )
+            bmb_iter.bm_url = bookmark_iter['url']
+
+         self.bm_bar.insert( bmb_iter, -1 )
+
    def rebuild_bookmarks( self, reload=True ):
 
       ''' Rebuild the bookmarks menu from storage. '''
@@ -181,8 +211,11 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       self.bookmarks = my_storage.list_bookmarks()
 
       # Put up the menus.
-      bookmarksmenu = self._rebuild_bookmark_menu( self.bookmarks )
+      bookmarksmenu = self._rebuild_bookmark_menu( self.bookmarks[0] )
       self.bookmarksm.set_submenu( bookmarksmenu )
+
+      self._rebuild_bookmark_tb( self.bookmarks[1] )
+
       self.window.show_all()
 
    def _on_new_tab( self, widget ):

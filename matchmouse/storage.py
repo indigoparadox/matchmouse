@@ -96,6 +96,23 @@ class MatchMouseStorage():
             'UPDATE system SET value=? WHERE key=?', (value, key)
          )
 
+   def _sort_bookmarks_children( self, bookmarks ):
+      # TODO: Sort bookmarks, putting folders first and alpha-sorting all.
+      
+      for bookmark_iter in bookmarks:
+         if 'children' in bookmark_iter.keys():
+            bookmark_iter['children'] = self._sort_bookmarks_children(
+               bookmark_iter['children']
+            )
+
+      bookmarks = sorted( bookmarks, key=lambda bm_iter: bm_iter['title'] )
+      bookmarks = sorted(
+         # Put folders before bookmarks.
+         bookmarks, key=lambda bm_iter: bm_iter['type'], reverse=True
+      )
+
+      return bookmarks
+
    def _list_bookmarks_children( self, folder_id ):
 
       bookmarks_branch = []
@@ -110,6 +127,11 @@ class MatchMouseStorage():
             if 'folder' == row['type']:
                # Recursively fetch children.
                row['children'] = self._list_bookmarks_children( row['id'] )
+            elif 'bookmark' == row['type']:
+               pass
+            else:
+               # Don't add non-bookmarks/folders.
+               continue
 
             # Add the whole mess to the tree.
             bookmarks_branch.append( row )
@@ -120,9 +142,14 @@ class MatchMouseStorage():
 
    def list_bookmarks( self ):
 
-      bookmarks_root = self._list_bookmarks_children( 'menu' )
+      bookmarks_root = self._sort_bookmarks_children(
+         self._list_bookmarks_children( 'menu' )
+      )
+      bookmarks_tb = self._sort_bookmarks_children(
+         self._list_bookmarks_children( 'toolbar' )
+      )
 
-      return bookmarks_root
+      return (bookmarks_root, bookmarks_tb)
 
    def get_bookmark( self, bm_id ):
       
