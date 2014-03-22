@@ -32,7 +32,6 @@ except ImportError:
 STATUSBAR_CONTEXT_LOADING = 1
 STATUSBAR_CONTEXT_SYNCING = 2
 
-STORAGE_PATH = 'storage.db'
 SYNCHER_CONFIG_PATH = 'sync.yaml'
 
 class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
@@ -202,13 +201,14 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
          self.bm_bar.insert( bmb_iter, -1 )
 
-   def rebuild_bookmarks( self, reload=True ):
+   def rebuild_bookmarks( self, reload_from_storage=True ):
 
       ''' Rebuild the bookmarks menu from storage. '''
       
-      # Grab bookmarks from storage.
-      my_storage = storage.MatchMouseStorage( STORAGE_PATH )
-      self.bookmarks = my_storage.list_bookmarks()
+      if not self.bookmarks or reload_from_storage:
+         # Grab bookmarks from storage.
+         my_storage = storage.MatchMouseStorage()
+         self.bookmarks = my_storage.list_bookmarks()
 
       # Put up the menus.
       bookmarksmenu = self._rebuild_bookmark_menu( self.bookmarks[0] )
@@ -248,13 +248,12 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
          self.statusbar.push( STATUSBAR_CONTEXT_SYNCING, 'Syncing...' )
          self.synching = True
          storage_sync = syncstorage.MatchMouseSyncStorage(
-            self, SYNCHER_CONFIG_PATH, STORAGE_PATH
+            self, SYNCHER_CONFIG_PATH
          )
          storage_sync.start()
 
    def on_sync_complete( self ):
       self.statusbar.pop( STATUSBAR_CONTEXT_SYNCING )
-      #self.storage = storage.MatchMouseStorage( STORAGE_PATH )
       self.synching = False
       self.rebuild_bookmarks()
 

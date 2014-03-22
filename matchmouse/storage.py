@@ -20,8 +20,11 @@ with MatchMouse.  If not, see <http://www.gnu.org/licenses/>.
 import sqlite3
 import logging
 import json
+import os
 
 RO_SYSTEM_OPTIONS = ['version']
+
+PROFILE_PATH = os.path.join( os.path.expanduser( '~' ), '.matchmouse' )
 
 class MatchMouseStorage():
 
@@ -29,12 +32,21 @@ class MatchMouseStorage():
    db = None
    db_path = ''
 
-   def __init__( self, db_path ):
+   def __init__( self, db_path=None ):
 
       self.logger = logging.getLogger( 'matchmouse.storage' )
 
-      self.db_path = db_path
-      self.db = sqlite3.connect( db_path )
+      # Make sure the profile directory exists.
+      if not os.path.isdir( PROFILE_PATH ):
+         self.logger.info( 'Profile directory not found. Creating...' )
+         os.mkdir( PROFILE_PATH )
+
+      if db_path:
+         self.db_path = db_path
+      else:
+         self.db_path = os.path.join( PROFILE_PATH, 'storage.db' )
+
+      self.db = sqlite3.connect( self.db_path )
 
       self.db.row_factory = sqlite3.Row
 
@@ -45,7 +57,7 @@ class MatchMouseStorage():
       # See if we need to setup a new DB, upgrade an existing DB, or do nothing.
       if None == db_version:
          # No database, so create the latest version.
-         self.logger.debug( 'No version field detected. Setting up DB.' )
+         self.logger.info( 'No version field detected. Setting up DB.' )
          self.cur.execute( 'CREATE TABLE system (key text, value text)' )
          self.cur.execute( 'INSERT INTO system VALUES(?, ?)', ('version', '1') )
          self.cur.execute(
@@ -122,7 +134,7 @@ class MatchMouseStorage():
          )
          for row in self.cur.fetchall():
             # Use a proper dict we can manipulate.
-            row = dict( row )
+            row = MatchMouseStorage._get_bookmark_prepare( row )
 
             if 'folder' == row['type']:
                # Recursively fetch children.
@@ -151,12 +163,18 @@ class MatchMouseStorage():
 
       return (bookmarks_root, bookmarks_tb)
 
+   @staticmethod
+   def _get_bookmark_prepare( row ):
+      row = dict( row )
+      row['tags'] = json.loads( row['tags'] )
+      return row
+
    def get_bookmark( self, bm_id ):
       
       try:
          self.cur.execute( 'SELECT * FROM bookmarks WHERE id=?', (bm_id,) )
          for row in self.cur.fetchall():
-            return row
+            return MatchMouseStorage._get_bookmark_prepare( row )
       except sqlite3.OperationalError:
          self.logger.debug( 'Bookmark "{}" not found.'.format( bm_id ) )
 
