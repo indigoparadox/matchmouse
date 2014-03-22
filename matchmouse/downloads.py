@@ -19,6 +19,7 @@ with MatchMouse.  If not, see <http://www.gnu.org/licenses/>.
 
 import threading
 import time
+import logging
 from gi.repository import Gtk
 
 class MatchMouseDownloadsMinder( threading.Thread ):
@@ -27,8 +28,10 @@ class MatchMouseDownloadsMinder( threading.Thread ):
    running = True
    downloads = []
    downloads_lock = None
+   logger = None
 
    def __init__( self, browser ):
+      self.logger = logging.getLogger( 'matchmouse.downloads.minder' )
       self.browser = browser
       self.downloads_lock = threading.Lock()
       threading.Thread.__init__( self )
@@ -61,47 +64,80 @@ class MatchMouseDownloadsMinder( threading.Thread ):
       self.downloads_lock.release()
       return count
 
-class MatchMouseDownloadsWindow( threading.Thread ):
+class MatchMouseDownloadsTab( Gtk.Frame, threading.Thread ):
 
    browser = None
    window = None
    tabs = None
    updating = True
    txt_fields = {}
-   downloads_list_frame_vbox = None
+   downloads_frames = []
+   downloads_progresses = []
+   downloads_labels = []
+   vbox = None
+   logger = None
 
    def __init__( self, browser ):
 
+      Gtk.Frame.__init__( self ) 
+      threading.Thread.__init__( self )
+
+      self.logger = logging.getLogger( 'matchmouse.downloads.viewer' )
+
       self.browser = browser
 
-      self.window = Gtk.Window()
-      self.window.connect( 'delete_event', self._on_close )
+      self.vbox = Gtk.VBox( spacing=5 )
+      self.vbox.set_border_width( 5 )
 
-      close_btn = Gtk.Button( 'Cancel' )
-      close_btn.connect( 'clicked', self._on_close )
-
-      # Pack and display.
-      buttons_hbox = Gtk.HBox()
-      buttons_hbox.pack_start( close_btn, False, False, 0 )
-
-      vbox = Gtk.VBox( spacing=5 )
-      vbox.set_border_width( 5 )
-      #vbox.pack_start( self.tabs, True, True, 0 )
-      vbox.pack_start( buttons_hbox, False, False, 0 )
-
-      self.window.add( vbox )
-      self.window.show_all()
-
-      threading.Thread.__init__( self )
+      self.add( self.vbox )
 
    def _on_close( self, widget ):
       self.updating = False
-      self.window.destroy()
+
+   @staticmethod
+   def _create_download_frame( filename ):
+      frame = Gtk.Frame()
+      label = Gtk.Label( filename )
+      progress = Gtk.ProgressBar()
+
+      vbox = Gtk.VBox( spacing=5 )
+      vbox.pack_start( label, False, False, 0 )
+      vbox.pack_start( progress, False, False, 0 )
+
+      frame.add( vbox )
+
+      return (frame, label, progress)
 
    def run( self ):
       while self.updating:
          for index_iter in range( 0, self.browser.downloads.count_downloads() ):
+
             download = self.browser.downloads.get_download( index_iter )
-            print download.get_status()
+
+            # Create a new progress frame for this download if we need one.
+            if index_iter >= len( self.downloads_frames ):
+
+               self.logger.debug( 'Adding download index: {}'.format(
+                  index_iter
+               ) )
+
+               frame_tuple = MatchMouseDownloadsTab._create_download_frame(
+                  download.get_destination_uri()
+               )
+
+               self.downloads_frames.append( frame_tuple[0] )
+               self.downloads_labels.append( frame_tuple[1] )
+               self.downloads_progresses.append( frame_tuple[2] )
+               
+               self.vbox.pack_start(
+                  self.downloads_frames[index_iter], False, False, 0
+               )
+               self.show_all()
+
+            # Update progress bar.
+            self.downloads_progresses[index_iter].set_fraction(
+               download.get_progress()
+            )
+
          time.sleep( 1 )
 
