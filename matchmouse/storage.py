@@ -73,9 +73,11 @@ class MatchMouseStorage():
       self.db.commit()
 
    def commit( self ):
+      self.logger.debug( 'Committing...' )
       self.db.commit()
 
    def close( self ):
+      self.logger.debug( 'Closing...' )
       self.db.close()
 
    def get_option( self, key ):
@@ -84,7 +86,10 @@ class MatchMouseStorage():
       try:
          self.cur.execute( 'SELECT value FROM system WHERE key=?', (key,) )
          for row in self.cur.fetchall():
-            value = int( row[0] )
+            if row[0].isdigit():
+               value = int( row[0] )
+            else:
+               value = row[0]
       except sqlite3.OperationalError:
          self.logger.debug( 'Option "{}" not defined.'.format( key ) )
 
@@ -101,9 +106,13 @@ class MatchMouseStorage():
 
       # Are we inserting a new option or updating an existing option?
       if None == self.get_option( key ):
+         self.logger.debug( 'Setting new option: {}'.format( key ) )
+
          # Inserting.
          self.cur.execute( 'INSERT INTO system VALUES(?, ?)', (key, value) )
       else:
+         self.logger.debug( 'Updating existing option: {}'.format( key ) )
+
          # Updating.
          self.cur.execute(
             'UPDATE system SET value=? WHERE key=?', (value, key)

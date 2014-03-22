@@ -104,6 +104,8 @@ class MatchMouseBrowserTab( Gtk.Frame ):
          'network-idle', Gtk.IconSize.SMALL_TOOLBAR
       )
 
+      self.label.set_label( self.web_view.get_title() )
+
       #print dir( self.web_view )
 
    def _on_icon_loaded( self, web_view, icon_uri ):

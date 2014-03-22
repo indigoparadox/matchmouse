@@ -24,28 +24,26 @@ try:
    import syncstorage
    import storage
    import tab
+   import options
 except ImportError:
    import matchmouse.syncstorage as syncstorage
    import matchmouse.storage as storage
    import matchmouse.tab as tab
+   import matchmouse.options as options
 
 STATUSBAR_CONTEXT_LOADING = 1
 STATUSBAR_CONTEXT_SYNCING = 2
-
-SYNCHER_CONFIG_PATH = 'sync.yaml'
 
 class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
    window = None
    web_view = None
-   txt_url = None
    logger = None
    synching = False
    bookmarks = {}
    bookmarksm = None
    bookmarkstb = None
    tabbook = None
-   #bm_bar = None
 
    bookmarks_menuitems = {}
 
@@ -93,10 +91,13 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       syncm.connect( 'activate', self._on_sync )
       toolsmenu.append( syncm )
 
+      optionsm = Gtk.MenuItem( 'Options...' )
+      optionsm.connect( 'activate', self._on_options )
+      toolsmenu.append( optionsm )
+
       mb.append( toolsm )
 
       # Add a bookmarks toolbar.
-      #self.bm_bar = Gtk.Toolbar()
       self.bookmarkstb = Gtk.MenuBar()
 
       # Create the tab notebook.
@@ -199,6 +200,7 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
                   'image-missing', Gtk.IconSize.SMALL_TOOLBAR
                )
             bmm_iter.set_image( bmm_image_iter )
+            bmm_iter.set_submenu( None )
 
             # Add the menu item to a dict so that we can quickly change the
             # icon or whatever later.
@@ -212,32 +214,6 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
       return bookmarksmenu
 
-   #def _rebuild_bookmark_tb( self, bm_parent ):
-
-   #   for index_iter in range( self.bm_bar.get_n_items(), 0 ):
-   #      self.bm_bar.remove( index_iter )
-   #   
-   #   for bookmark_iter in bm_parent:
-   #      bmb_img_iter = Gtk.Image()
-   #      bmb_img_iter.set_from_icon_name( 
-   #         'image-missing', Gtk.IconSize.SMALL_TOOLBAR
-   #      )
-
-   #      bmb_label_iter = Gtk.Label( bookmark_iter['title'] )
-
-   #      hbox_iter = Gtk.HBox()
-   #      hbox_iter.pack_start( bmb_img_iter, False, False, 0 )
-   #      hbox_iter.pack_start( bmb_label_iter, False, False, 0 )
-
-   #      bmb_iter = Gtk.ToolButton( label_widget=hbox_iter )
-
-   #      if 'bookmark' == bookmark_iter['type']:
-   #         bmb_iter.connect( 'clicked', self._on_open_bookmark )
-   #         bmb_iter.bm_url = bookmark_iter['url']
-   #         bmb_iter.bm_id = bookmark_iter['id']
-
-   #      self.bm_bar.insert( bmb_iter, -1 )
-
    def rebuild_bookmarks( self, reload_from_storage=True ):
 
       ''' Rebuild the bookmarks menu from storage. '''
@@ -246,16 +222,13 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
          # Grab bookmarks from storage.
          my_storage = storage.MatchMouseStorage()
          self.bookmarks = my_storage.list_bookmarks()
+         my_storage.close()
 
       # Put up the menus.
       bookmarksmenu = self._rebuild_bookmark_menu( self.bookmarks[0] )
       self.bookmarksm.set_submenu( bookmarksmenu )
 
       self._rebuild_bookmark_menu( self.bookmarks[1], self.bookmarkstb )
-      #self.bookmarkstb.set_submenu( bookmarkstb )
-      #self.bookmarkstb = bookmarkstb
-      
-      #self._rebuild_bookmark_tb( self.bookmarks[1] )
 
       self.window.show_all()
 
@@ -285,25 +258,20 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       pass
 
    def _on_quit( self, widget ):
-      #if None != self.storage:
-      #   self.storage.commit()
-      #   self.storage.close()
       Gtk.main_quit()
 
    def _on_sync( self, widget ):
-      # TODO: Put sync in a separate thread.
-      #self.syncher.sync()
-
       if not self.synching:
          self.statusbar.push( STATUSBAR_CONTEXT_SYNCING, 'Syncing...' )
          self.synching = True
-         storage_sync = syncstorage.MatchMouseSyncStorage(
-            self, SYNCHER_CONFIG_PATH
-         )
+         storage_sync = syncstorage.MatchMouseSyncStorage( self )
          storage_sync.start()
 
    def on_sync_complete( self ):
       self.statusbar.pop( STATUSBAR_CONTEXT_SYNCING )
       self.synching = False
       self.rebuild_bookmarks()
+
+   def _on_options( self, widget ):
+      options.MatchMouseOptions()
 

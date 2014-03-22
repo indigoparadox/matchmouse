@@ -26,18 +26,15 @@ try:
 except ImportError:
    import matchmouse.storage as storage
    import matchmouse.syncher as syncher
-from yaml import load, dump
 
 SYNC_BM_KEYS = ['id', 'title', 'bmkUri', 'tags', 'keyword', 'parentid', 'type']
 
 class MatchMouseSyncStorage( threading.Thread ):
 
    browser = None
-   syncher_config_path = ''
 
-   def __init__( self, browser, syncher_config_path ):
+   def __init__( self, browser ):
       self.browser = browser
-      self.syncher_config_path = syncher_config_path
       threading.Thread.__init__( self )
 
    def run( self ):
@@ -46,14 +43,12 @@ class MatchMouseSyncStorage( threading.Thread ):
       
       # Create storage/syncher instances in this thread.
       my_storage = storage.MatchMouseStorage()
-      with open( self.syncher_config_path ) as sync_config_file:
-         sync_config = load( sync_config_file )
       my_syncher = syncher.MatchMouseSyncher(
          self,
-         sync_config['Server'],
-         sync_config['Username'],
-         sync_config['Password'],
-         sync_config['Key']
+         my_storage.get_option( 'sync_server' ),
+         my_storage.get_option( 'sync_username' ),
+         my_storage.get_option( 'sync_password' ),
+         my_storage.get_option( 'sync_key' )
       )
 
       # See if we can even do a partial sync.
