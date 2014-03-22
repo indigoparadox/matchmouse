@@ -21,6 +21,7 @@ import sqlite3
 import logging
 import json
 import os
+from gi.repository import GdkPixbuf
 
 RO_SYSTEM_OPTIONS = ['version']
 
@@ -167,6 +168,7 @@ class MatchMouseStorage():
    def _get_bookmark_prepare( row ):
       row = dict( row )
       row['tags'] = json.loads( row['tags'] )
+      row['icon'] = MatchMouseStorage.get_bookmark_icon( row['id'] )
       return row
 
    def get_bookmark( self, bm_id ):
@@ -179,6 +181,17 @@ class MatchMouseStorage():
          self.logger.debug( 'Bookmark "{}" not found.'.format( bm_id ) )
 
       return None
+
+   @staticmethod
+   def get_bookmark_icon( bm_id ):
+
+      icon_path = \
+         os.path.join( PROFILE_PATH, 'icons', '{}.png'.format( bm_id ) )
+      
+      if os.path.isfile( icon_path ):
+         return GdkPixbuf.Pixbuf.new_from_file( icon_path )
+      else:
+         return None
 
    def set_bookmark( self, bm_id, title, url, tags, keyword, parent, bm_type ):
 
@@ -199,6 +212,25 @@ class MatchMouseStorage():
                'WHERE id=?',
             (title, url, json.dumps( tags ), keyword, parent, bm_type, bm_id)
          )
+
+   @staticmethod
+   def set_bookmark_icon( bm_id, icon ):
+
+      ''' Saves a GdkPixBuf bookmark icon to the repository. '''
+
+      icon_path = os.path.join( PROFILE_PATH, 'icons' )
+
+      # Make sure the profile directory exists.
+      if not os.path.isdir( icon_path ):
+         #self.logger.info( 'Bookmark icon directory not found. Creating...' )
+         os.mkdir( icon_path )
+
+      icon.savev(
+         os.path.join( icon_path, '{}.png'.format( bm_id ) ),
+         'png',
+         [],
+         []
+      )
 
    def delete_bookmark( self, bm_id ):
       self.logger.debug( 'Deleting bookmark: {}'.format( bm_id ) )

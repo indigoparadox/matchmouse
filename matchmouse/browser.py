@@ -21,7 +21,7 @@ import sys
 from gi.repository import Gtk
 import logging
 try:
-   import storage
+   import syncstorage
    import storage
    import tab
 except ImportError:
@@ -117,7 +117,7 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
       Gtk.main()
 
-   def open_tab( self, url=None ):
+   def open_tab( self, url=None, bm_id=None ):
       
       # Create the label/close button/frame.
       tab_label = Gtk.Label( 'Tab' )
@@ -131,6 +131,10 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       tab_close.connect( 'clicked', self._on_tab_close )
 
       tab_frame = tab.MatchMouseBrowserTab( self, tab_label, tab_close, url )
+
+      # Hold on to the bookmark ID for favicon purposes.
+      if bm_id:
+         tab_frame.bm_id = bm_id
 
       # Setup a little HBox to hold the label/close button.
       hbox = Gtk.HBox( spacing=5 )
@@ -159,7 +163,7 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
    def _rebuild_bookmark_menu( self, bm_parent ):
       bookmarksmenu = Gtk.Menu()
       for bookmark_iter in bm_parent:
-         bmm_iter = Gtk.MenuItem( bookmark_iter['title'] )
+         bmm_iter = Gtk.ImageMenuItem( bookmark_iter['title'] )
 
          # Create link/submenu as appropriate.
          if 'folder' == bookmark_iter['type']:
@@ -168,6 +172,13 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
          elif 'bookmark' == bookmark_iter['type']:
             bmm_iter.connect( 'activate', self._on_open_bookmark )
             bmm_iter.bm_url = bookmark_iter['url']
+            bmm_iter.bm_id = bookmark_iter['id']
+
+            # Load the icon if present.
+            if bookmark_iter['icon']:
+               bmm_image_iter = Gtk.Image()
+               bmm_image_iter.set_from_pixbuf( bookmark_iter['icon'] )
+               bmm_iter.set_image( bmm_image_iter )
          else:
             # Skip queries or other types.
             continue
@@ -198,6 +209,7 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
          if 'bookmark' == bookmark_iter['type']:
             bmb_iter.connect( 'clicked', self._on_open_bookmark )
             bmb_iter.bm_url = bookmark_iter['url']
+            bmb_iter.bm_id = bookmark_iter['id']
 
          self.bm_bar.insert( bmb_iter, -1 )
 
@@ -218,6 +230,10 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
       self.window.show_all()
 
+   def set_bookmark_icon( self, bm_id, icon ):
+
+      storage.MatchMouseStorage.set_bookmark_icon( bm_id, icon )
+
    def _on_new_tab( self, widget ):
       self.open_tab()
 
@@ -229,7 +245,7 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       #   self.tabbook.get_nth_page( self.tabbook.get_current_page() )
       #current_tab.open( widget.bm_url, True )
 
-      self.open_tab( url=widget.bm_url )
+      self.open_tab( url=widget.bm_url, bm_id=widget.bm_id )
 
    def _on_open( self, widget ):
       pass
