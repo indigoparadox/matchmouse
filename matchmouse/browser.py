@@ -20,9 +20,14 @@ with MatchMouse.  If not, see <http://www.gnu.org/licenses/>.
 import sys
 from gi.repository import Gtk
 import logging
-import storage
-import syncstorage
-import tab
+try:
+   import storage
+   import storage
+   import tab
+except ImportError:
+   import matchmouse.syncstorage as syncstorage
+   import matchmouse.storage as storage
+   import matchmouse.tab as tab
 
 STATUSBAR_CONTEXT_LOADING = 1
 STATUSBAR_CONTEXT_SYNCING = 2

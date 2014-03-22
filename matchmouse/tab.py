@@ -19,10 +19,9 @@ with MatchMouse.  If not, see <http://www.gnu.org/licenses/>.
 
 from gi.repository import Gtk
 from gi.repository import WebKit 
-import browser
 try:
    import urllib.parse as urlparse
-except:
+except ImportError:
    import urlparse
 
 class MatchMouseBrowserTab( Gtk.Frame ):
