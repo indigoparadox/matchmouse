@@ -3,6 +3,7 @@
 
 * requests
 * pyyaml
+* M2Crypto
 
 = Goals =
 
@@ -18,4 +19,6 @@
   built-in.
 * User styles/scripts.
 * HTTPS enforcement.
+* Remove yaml requirement and store config in SQLite DB.
+* Run in Python 3.
 
