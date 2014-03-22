@@ -43,8 +43,11 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
    synching = False
    bookmarks = {}
    bookmarksm = None
+   bookmarkstb = None
    tabbook = None
-   bm_bar = None
+   #bm_bar = None
+
+   bookmarks_menuitems = {}
 
    def __init__( self ):
 
@@ -93,7 +96,8 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       mb.append( toolsm )
 
       # Add a bookmarks toolbar.
-      self.bm_bar = Gtk.Toolbar()
+      #self.bm_bar = Gtk.Toolbar()
+      self.bookmarkstb = Gtk.MenuBar()
 
       # Create the tab notebook.
       self.tabbook = Gtk.Notebook()
@@ -106,7 +110,8 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       vbox = Gtk.VBox( spacing=5 )
       vbox.set_border_width( 5 )
       vbox.pack_start( mb, False, False, 0 )
-      vbox.pack_start( self.bm_bar, False, False, 0 )
+      #vbox.pack_start( self.bm_bar, False, False, 0 )
+      vbox.pack_start( self.bookmarkstb, False, False, 0 )
       vbox.pack_start( self.tabbook, True, True, 0 )
       vbox.pack_start( self.statusbar, False, False, 0 )
       self.window.add( vbox )
@@ -160,8 +165,11 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
          self.tabbook.remove_page( index )
 
-   def _rebuild_bookmark_menu( self, bm_parent ):
-      bookmarksmenu = Gtk.Menu()
+   def _rebuild_bookmark_menu( self, bm_parent, bookmarksmenu=None ):
+
+      if None == bookmarksmenu:
+         bookmarksmenu = Gtk.Menu()
+
       for bookmark_iter in bm_parent:
          bmm_iter = Gtk.ImageMenuItem( bookmark_iter['title'] )
 
@@ -169,16 +177,33 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
          if 'folder' == bookmark_iter['type']:
             submenu = self._rebuild_bookmark_menu( bookmark_iter['children'] )
             bmm_iter.set_submenu( submenu )
+
+            # Set a folder icon.
+            bmm_image_iter = Gtk.Image()
+            bmm_image_iter.set_from_icon_name(
+               'folder', Gtk.IconSize.SMALL_TOOLBAR
+            )
+            bmm_iter.set_image( bmm_image_iter )
+
          elif 'bookmark' == bookmark_iter['type']:
             bmm_iter.connect( 'activate', self._on_open_bookmark )
             bmm_iter.bm_url = bookmark_iter['url']
             bmm_iter.bm_id = bookmark_iter['id']
 
             # Load the icon if present.
+            bmm_image_iter = Gtk.Image()
             if bookmark_iter['icon']:
-               bmm_image_iter = Gtk.Image()
                bmm_image_iter.set_from_pixbuf( bookmark_iter['icon'] )
-               bmm_iter.set_image( bmm_image_iter )
+            else:
+               bmm_image_iter.set_from_icon_name(
+                  'image-missing', Gtk.IconSize.SMALL_TOOLBAR
+               )
+            bmm_iter.set_image( bmm_image_iter )
+
+            # Add the menu item to a dict so that we can quickly change the
+            # icon or whatever later.
+            self.bookmarks_menuitems[bookmark_iter['id']] = bmm_iter
+
          else:
             # Skip queries or other types.
             continue
@@ -187,31 +212,31 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
       return bookmarksmenu
 
-   def _rebuild_bookmark_tb( self, bm_parent ):
+   #def _rebuild_bookmark_tb( self, bm_parent ):
 
-      for index_iter in range( self.bm_bar.get_n_items(), 0 ):
-         self.bm_bar.remove( index_iter )
-      
-      for bookmark_iter in bm_parent:
-         bmb_img_iter = Gtk.Image()
-         bmb_img_iter.set_from_icon_name( 
-            'image-missing', Gtk.IconSize.SMALL_TOOLBAR
-         )
+   #   for index_iter in range( self.bm_bar.get_n_items(), 0 ):
+   #      self.bm_bar.remove( index_iter )
+   #   
+   #   for bookmark_iter in bm_parent:
+   #      bmb_img_iter = Gtk.Image()
+   #      bmb_img_iter.set_from_icon_name( 
+   #         'image-missing', Gtk.IconSize.SMALL_TOOLBAR
+   #      )
 
-         bmb_label_iter = Gtk.Label( bookmark_iter['title'] )
+   #      bmb_label_iter = Gtk.Label( bookmark_iter['title'] )
 
-         hbox_iter = Gtk.HBox()
-         hbox_iter.pack_start( bmb_img_iter, False, False, 0 )
-         hbox_iter.pack_start( bmb_label_iter, False, False, 0 )
+   #      hbox_iter = Gtk.HBox()
+   #      hbox_iter.pack_start( bmb_img_iter, False, False, 0 )
+   #      hbox_iter.pack_start( bmb_label_iter, False, False, 0 )
 
-         bmb_iter = Gtk.ToolButton( label_widget=hbox_iter )
+   #      bmb_iter = Gtk.ToolButton( label_widget=hbox_iter )
 
-         if 'bookmark' == bookmark_iter['type']:
-            bmb_iter.connect( 'clicked', self._on_open_bookmark )
-            bmb_iter.bm_url = bookmark_iter['url']
-            bmb_iter.bm_id = bookmark_iter['id']
+   #      if 'bookmark' == bookmark_iter['type']:
+   #         bmb_iter.connect( 'clicked', self._on_open_bookmark )
+   #         bmb_iter.bm_url = bookmark_iter['url']
+   #         bmb_iter.bm_id = bookmark_iter['id']
 
-         self.bm_bar.insert( bmb_iter, -1 )
+   #      self.bm_bar.insert( bmb_iter, -1 )
 
    def rebuild_bookmarks( self, reload_from_storage=True ):
 
@@ -226,13 +251,22 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       bookmarksmenu = self._rebuild_bookmark_menu( self.bookmarks[0] )
       self.bookmarksm.set_submenu( bookmarksmenu )
 
-      self._rebuild_bookmark_tb( self.bookmarks[1] )
+      self._rebuild_bookmark_menu( self.bookmarks[1], self.bookmarkstb )
+      #self.bookmarkstb.set_submenu( bookmarkstb )
+      #self.bookmarkstb = bookmarkstb
+      
+      #self._rebuild_bookmark_tb( self.bookmarks[1] )
 
       self.window.show_all()
 
    def set_bookmark_icon( self, bm_id, icon ):
 
       storage.MatchMouseStorage.set_bookmark_icon( bm_id, icon )
+
+      # Quickly set the new icon on the menus/toolbar.
+      icon_image = Gtk.Image()
+      icon_image.set_from_pixbuf( icon )
+      self.bookmarks_menuitems[bm_id].set_image( icon_image )
 
    def _on_new_tab( self, widget ):
       self.open_tab()
