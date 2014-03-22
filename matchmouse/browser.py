@@ -114,13 +114,18 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       # Create the label/close button/frame.
       tab_label = gtk.Label( 'Tab' )
 
-      tab_close = gtk.Button( 'X' )
+      tab_close = gtk.Button()
+      tab_close_image = gtk.Image()
+      tab_close_image.set_from_stock(
+         gtk.STOCK_CLOSE, gtk.ICON_SIZE_SMALL_TOOLBAR
+      )
+      tab_close.set_image( tab_close_image )
       tab_close.connect( 'clicked', self._on_tab_close )
 
       tab_frame = tab.MatchMouseBrowserTab( self, tab_label, tab_close, url )
 
       # Setup a little HBox to hold the label/close button.
-      hbox = gtk.HBox()
+      hbox = gtk.HBox( spacing=5 )
       hbox.pack_start( tab_label, True, True )
       hbox.pack_start( tab_close, False, False, 0 )
       hbox.show_all()
