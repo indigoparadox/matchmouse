@@ -17,8 +17,13 @@ You should have received a copy of the GNU General Public License along
 with MatchMouse.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import logging
 from gi.repository import Gtk
 from gi.repository import WebKit 
+try:
+   import browser
+except ImportError:
+   import matchmouse.browser as browser
 try:
    import urllib.parse as urlparse
 except ImportError:
@@ -33,9 +38,13 @@ class MatchMouseBrowserTab( Gtk.Frame ):
    label = None
    close = None
    tab_close = -1
+   bm_id = ''
+   logger = None
 
    def __init__( self, browser, label=None, close=None, url=None ):
       Gtk.Frame.__init__( self ) 
+
+      self.logger = logging.getLogger( 'matchmouse.tab' )
 
       self.browser = browser
       self.label = label
@@ -45,9 +54,12 @@ class MatchMouseBrowserTab( Gtk.Frame ):
       self.txt_url = Gtk.Entry()
       self.txt_url.connect( 'activate', self._on_txt_url_activate )
 
+      # TODO: Disable icon database and other privacy leaks.
+
       self.web_view = WebKit.WebView()
       self.web_view.connect( 'load-started', self._on_load_started )
       self.web_view.connect( 'load-finished', self._on_load_finished )
+      self.web_view.connect( 'icon-loaded', self._on_icon_loaded )
 
       web_scroll = Gtk.ScrolledWindow()
       web_scroll.add( self.web_view )
@@ -93,6 +105,21 @@ class MatchMouseBrowserTab( Gtk.Frame ):
       )
 
       #print dir( self.web_view )
+
+   def _on_icon_loaded( self, web_view, icon_uri ):
+      
+      if '' != self.bm_id:
+         # TODO: Only update the icon if none is present or it's different?
+         self.logger.debug(
+            'Updating icon for bookmark: {}'.format( self.bm_id )
+         )
+         icon_image = self.web_view.try_get_favicon_pixbuf( 16, 16 )
+         self.browser.set_bookmark_icon( self.bm_id, icon_image )
+
+         # Reset the bookmark ID to empty by default.
+         self.bm_id = ''
+
+      # TODO: Set the tab icon regardless.
 
    def open( self, url, sync_txt=True ):
 
