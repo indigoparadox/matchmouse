@@ -33,13 +33,11 @@ SYNC_BM_KEYS = ['id', 'title', 'bmkUri', 'tags', 'keyword', 'parentid', 'type']
 class MatchMouseSyncStorage( threading.Thread ):
 
    browser = None
-   storage_path = ''
    syncher_config_path = ''
 
-   def __init__( self, browser, syncher_config_path, storage_path ):
+   def __init__( self, browser, syncher_config_path ):
       self.browser = browser
       self.syncher_config_path = syncher_config_path
-      self.storage_path = storage_path
       threading.Thread.__init__( self )
 
    def run( self ):
@@ -47,7 +45,7 @@ class MatchMouseSyncStorage( threading.Thread ):
       logger = logging.getLogger( 'matchmouse.syncstorage' )
       
       # Create storage/syncher instances in this thread.
-      my_storage = storage.MatchMouseStorage( self.storage_path )
+      my_storage = storage.MatchMouseStorage()
       with open( self.syncher_config_path ) as sync_config_file:
          sync_config = load( sync_config_file )
       my_syncher = syncher.MatchMouseSyncher(
