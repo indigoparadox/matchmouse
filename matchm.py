@@ -19,8 +19,11 @@ with MatchMouse.  If not, see <http://www.gnu.org/licenses/>.
 
 import matchmouse.browser as browser
 import logging
+from gi.repository import GObject
 
 def main():
+
+   GObject.threads_init()
 
    logging.basicConfig( level=logging.DEBUG )
 
