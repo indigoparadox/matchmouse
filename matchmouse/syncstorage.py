@@ -20,8 +20,12 @@ with MatchMouse.  If not, see <http://www.gnu.org/licenses/>.
 import threading
 import time
 import logging
-import storage
-import syncher
+try:
+   import storage
+   import syncher
+except ImportError:
+   import matchmouse.storage as storage
+   import matchmouse.syncher as syncher
 from yaml import load, dump
 
 SYNC_BM_KEYS = ['id', 'title', 'bmkUri', 'tags', 'keyword', 'parentid', 'type']

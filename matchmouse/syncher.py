@@ -23,6 +23,7 @@ import hashlib
 import json
 import logging
 import hmac
+# FIXME: Find a python-3 solution.
 from M2Crypto.EVP import Cipher
 
 SYNC_API = '1.0'
