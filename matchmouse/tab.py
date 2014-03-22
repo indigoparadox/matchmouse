@@ -32,6 +32,9 @@ except ImportError:
 
 class MatchMouseBrowserTab( Gtk.Frame ):
 
+   ''' Note that the label and close button must be set by the master window
+   that creates the tab at some point before it is used! '''
+
    browser = None
    txt_url = None
    img_icon = None
@@ -42,14 +45,12 @@ class MatchMouseBrowserTab( Gtk.Frame ):
    bm_id = ''
    logger = None
 
-   def __init__( self, browser, label=None, close=None, url=None, view=None ):
+   def __init__( self, browser, url=None, view=None ):
       Gtk.Frame.__init__( self ) 
 
       self.logger = logging.getLogger( 'matchmouse.tab' )
 
       self.browser = browser
-      self.label = label
-      self.close = close
 
       # Create the web controls.
       self.txt_url = Gtk.Entry()
@@ -141,7 +142,7 @@ class MatchMouseBrowserTab( Gtk.Frame ):
 
    def _on_create_web_view( self, web_view, frame ):
       new_web_view = WebKit.WebView()
-      self.browser.open_tab( view=new_web_view )
+      self.browser.open_tab_page( view=new_web_view )
       return new_web_view
 
    #def _on_web_view_ready( self, web_view ):
