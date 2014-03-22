@@ -31,12 +31,15 @@ class MatchMouseBrowserTab( gtk.Frame ):
    txt_url = None
    web_view = None
    label = None
+   close = None
+   tab_close = -1
 
-   def __init__( self, browser, label=None, url=None ):
+   def __init__( self, browser, label=None, close=None, url=None ):
       gtk.Frame.__init__( self ) 
 
       self.browser = browser
       self.label = label
+      self.close = close
 
       # Create the web controls.
       self.txt_url = gtk.Entry()

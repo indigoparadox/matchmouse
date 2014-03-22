@@ -104,20 +104,44 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       self.window.add( vbox )
       self.window.show_all()
 
-      # Setup storage.
-      # TODO: Only open storage when we need it.
-      #self.storage = storage.MatchMouseStorage( STORAGE_PATH )
-
       # Setup bookmarks menu.
       self.rebuild_bookmarks()
 
       gtk.main()
 
    def open_tab( self, url=None ):
+      
+      # Create the label/close button/frame.
       tab_label = gtk.Label( 'Tab' )
-      tab_frame = tab.MatchMouseBrowserTab( self, tab_label, url )
-      self.tabbook.append_page( tab_frame, tab_label )
+
+      tab_close = gtk.Button( 'X' )
+      tab_close.connect( 'clicked', self._on_tab_close )
+
+      tab_frame = tab.MatchMouseBrowserTab( self, tab_label, tab_close, url )
+
+      # Setup a little HBox to hold the label/close button.
+      hbox = gtk.HBox()
+      hbox.pack_start( tab_label, True, True )
+      hbox.pack_start( tab_close, False, False, 0 )
+      hbox.show_all()
+
+      tab_close.tab_index = self.tabbook.append_page( tab_frame, hbox )
+
       self.window.show_all()
+
+   def close_tab( self, index=None ):
+      if None != index:
+         self.logger.debug( 'Closing tab: {}'.format( index ) )
+
+         # Adjust indexes so that they stay consistent.
+         for index_iter in range( 0, self.tabbook.get_n_pages() ):
+            if index < index_iter:
+               self.logger.debug(
+                  'Tab {} becomes {}...'.format( index_iter, index_iter - 1 )
+               )
+               self.tabbook.get_nth_page( index_iter ).close.tab_index -= 1
+
+         self.tabbook.remove_page( index )
 
    def _rebuild_bookmark_menu( self, bm_parent ):
       bookmarksmenu = gtk.Menu()
@@ -154,6 +178,9 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
    def _on_new_tab( self, widget ):
       self.open_tab()
+
+   def _on_tab_close( self, widget ):
+      self.close_tab( index=widget.tab_index )
 
    def _on_open_bookmark( self, widget ):
       #current_tab = \
