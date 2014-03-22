@@ -171,6 +171,11 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
       self._create_tab( tab_frame )
 
+   def open_tab_downloads( self ):
+      tab_frame = downloads.MatchMouseDownloadsTab( self )
+      tab_frame.start()
+      self._create_tab( tab_frame, title='Downloads' )
+
    def close_tab( self, index=None ):
       if None != index:
          self.logger.debug( 'Closing tab: {}'.format( index ) )
@@ -182,6 +187,9 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
                   'Tab {} becomes {}...'.format( index_iter, index_iter - 1 )
                )
                self.tabbook.get_nth_page( index_iter ).close.tab_index -= 1
+
+         # If the tab is an updating type, stop it.
+         self.tabbook.get_nth_page( index ).updating = False
 
          self.tabbook.remove_page( index )
 
@@ -278,6 +286,11 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
    def _on_quit( self, widget ):
       self.downloads.running = False
+
+      # If there are updating tabs, stop them.
+      for index_iter in range( 0, self.tabbook.get_n_pages() ):
+         self.tabbook.get_nth_page( index_iter ).updating = False
+
       Gtk.main_quit()
 
    def _on_sync( self, widget ):
@@ -296,5 +309,5 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       options.MatchMouseOptionsWindow()
 
    def _on_downloads( self, widget ):
-      downloads.MatchMouseDownloadsWindow( self ).start()
+      self.open_tab_downloads()
 
