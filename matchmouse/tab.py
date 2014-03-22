@@ -60,7 +60,7 @@ class MatchMouseBrowserTab( Gtk.Frame ):
 
       # Create a new webview if none was provided.
       if not view:
-         self.web_view = WebKit.WebView()
+         self.web_view = MatchMouseBrowserTab.create_web_view()
 
       else:
          self.web_view = view
@@ -93,6 +93,11 @@ class MatchMouseBrowserTab( Gtk.Frame ):
 
       if url:
          self.open( url, True )
+
+   @staticmethod
+   def create_web_view():
+      web_view = WebKit.WebView()
+      return web_view
 
    def _on_txt_url_activate( self, entry ):
       self.open( entry.get_text(), False )
@@ -141,7 +146,7 @@ class MatchMouseBrowserTab( Gtk.Frame ):
       # TODO: Set the tab icon regardless.
 
    def _on_create_web_view( self, web_view, frame ):
-      new_web_view = WebKit.WebView()
+      new_web_view = MatchMouseBrowserTab.create_web_view()
       self.browser.open_tab_page( view=new_web_view )
       return new_web_view
 
@@ -175,4 +180,8 @@ class MatchMouseBrowserTab( Gtk.Frame ):
       # Actually change the page.
       #self.window.set_title( 'MatchMouse - {}'.format( url ) )
       self.web_view.open( url )
+
+   def refresh( self ):
+      # TODO: Check if shift is held down for cache bypass.
+      self.web_view.reload()
 
