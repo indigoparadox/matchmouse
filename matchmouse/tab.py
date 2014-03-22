@@ -41,7 +41,7 @@ class MatchMouseBrowserTab( Gtk.Frame ):
    bm_id = ''
    logger = None
 
-   def __init__( self, browser, label=None, close=None, url=None ):
+   def __init__( self, browser, label=None, close=None, url=None, view=None ):
       Gtk.Frame.__init__( self ) 
 
       self.logger = logging.getLogger( 'matchmouse.tab' )
@@ -56,10 +56,18 @@ class MatchMouseBrowserTab( Gtk.Frame ):
 
       # TODO: Disable icon database and other privacy leaks.
 
-      self.web_view = WebKit.WebView()
+      # Create a new webview if none was provided.
+      if not view:
+         self.web_view = WebKit.WebView()
+
+      else:
+         self.web_view = view
+
       self.web_view.connect( 'load-started', self._on_load_started )
       self.web_view.connect( 'load-finished', self._on_load_finished )
       self.web_view.connect( 'icon-loaded', self._on_icon_loaded )
+      self.web_view.connect( 'create-web-view', self._on_create_web_view )
+      #self.web_view.connect( 'web-view-ready', self._on_web_view_ready )
 
       web_scroll = Gtk.ScrolledWindow()
       web_scroll.add( self.web_view )
@@ -87,6 +95,9 @@ class MatchMouseBrowserTab( Gtk.Frame ):
       self.open( entry.get_text(), False )
 
    def _on_load_started( self, web_view, frame ):
+
+      #self.txt_url.set_text( web_view.get_uri() )
+
       self.browser.statusbar.push(
          # TODO: Get URL.
          browser.STATUSBAR_CONTEXT_LOADING, 'Loading {}...'.format( '' )
@@ -97,6 +108,9 @@ class MatchMouseBrowserTab( Gtk.Frame ):
       )
 
    def _on_load_finished( self, web_view, frame ):
+
+      self.txt_url.set_text( web_view.get_uri() )
+
       self.browser.statusbar.pop( browser.STATUSBAR_CONTEXT_LOADING )
 
       # TODO: Change the icon depending on load/SSL status.
@@ -122,6 +136,14 @@ class MatchMouseBrowserTab( Gtk.Frame ):
          self.bm_id = ''
 
       # TODO: Set the tab icon regardless.
+
+   def _on_create_web_view( self, web_view, frame ):
+      new_web_view = WebKit.WebView()
+      self.browser.open_tab( view=new_web_view )
+      return new_web_view
+
+   #def _on_web_view_ready( self, web_view ):
+   #   self.txt_url.set_text( web_view.get_uri() )
 
    def open( self, url, sync_txt=True ):
 

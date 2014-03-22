@@ -123,7 +123,7 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
       Gtk.main()
 
-   def open_tab( self, url=None, bm_id=None ):
+   def open_tab( self, url=None, bm_id=None, view=None ):
       
       # Create the label/close button/frame.
       tab_label = Gtk.Label( 'Tab' )
@@ -136,7 +136,9 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       tab_close.set_image( tab_close_image )
       tab_close.connect( 'clicked', self._on_tab_close )
 
-      tab_frame = tab.MatchMouseBrowserTab( self, tab_label, tab_close, url )
+      tab_frame = tab.MatchMouseBrowserTab(
+         self, label=tab_label, close=tab_close, url=url, view=view
+      )
 
       # Hold on to the bookmark ID for favicon purposes.
       if bm_id:
