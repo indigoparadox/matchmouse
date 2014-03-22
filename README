@@ -4,6 +4,8 @@
 * requests
 * pyyaml
 * M2Crypto
+* PyGTK
+* PyWebKitGTK
 
 = Goals =
 
