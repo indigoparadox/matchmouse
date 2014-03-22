@@ -29,6 +29,7 @@ class MatchMouseBrowserTab( gtk.Frame ):
 
    browser = None
    txt_url = None
+   img_icon = None
    web_view = None
    label = None
    close = None
@@ -52,9 +53,18 @@ class MatchMouseBrowserTab( gtk.Frame ):
       web_scroll = gtk.ScrolledWindow()
       web_scroll.add( self.web_view )
 
+      self.img_icon = gtk.Image()
+      self.img_icon.set_from_stock(
+         gtk.STOCK_MISSING_IMAGE, gtk.ICON_SIZE_SMALL_TOOLBAR
+      )
+
+      hbox_txt = gtk.HBox()
+      hbox_txt.pack_start( self.img_icon, False, False, 0 )
+      hbox_txt.pack_start( self.txt_url, True, True )
+
       vbox = gtk.VBox( spacing=5 )
       vbox.set_border_width( 0 )
-      vbox.pack_start( self.txt_url, False, False )
+      vbox.pack_start( hbox_txt, False, False )
       vbox.pack_start( web_scroll, True, True )
       self.add( vbox )
       #self.show_all()
@@ -71,8 +81,17 @@ class MatchMouseBrowserTab( gtk.Frame ):
          browser.STATUSBAR_CONTEXT_LOADING, 'Loading {}...'.format( '' )
       )
 
+      self.img_icon.set_from_stock(
+         gtk.STOCK_REFRESH, gtk.ICON_SIZE_SMALL_TOOLBAR
+      )
+
    def _on_load_finished( self, web_view, frame ):
       self.browser.statusbar.pop( browser.STATUSBAR_CONTEXT_LOADING )
+
+      # TODO: Change the icon depending on load/SSL status.
+      self.img_icon.set_from_stock(
+         gtk.STOCK_OK, gtk.ICON_SIZE_SMALL_TOOLBAR
+      )
 
    def open( self, url, sync_txt=True ):
 
