@@ -18,6 +18,7 @@ with MatchMouse.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 import logging
+import os
 from gi.repository import Gtk
 from gi.repository import WebKit 
 try:
@@ -68,6 +69,7 @@ class MatchMouseBrowserTab( Gtk.Frame ):
       self.web_view.connect( 'icon-loaded', self._on_icon_loaded )
       self.web_view.connect( 'create-web-view', self._on_create_web_view )
       #self.web_view.connect( 'web-view-ready', self._on_web_view_ready )
+      self.web_view.connect( 'download-requested', self._on_download_requested )
 
       web_scroll = Gtk.ScrolledWindow()
       web_scroll.add( self.web_view )
@@ -144,6 +146,13 @@ class MatchMouseBrowserTab( Gtk.Frame ):
 
    #def _on_web_view_ready( self, web_view ):
    #   self.txt_url.set_text( web_view.get_uri() )
+   
+   def _on_download_requested( self, web_view, download ):
+      download.set_destination_uri( 'file://' + os.path.join(
+         os.path.expanduser( '~' ), download.get_suggested_filename()
+      ) )
+      self.browser.downloads.add_download( download )
+      return True
 
    def open( self, url, sync_txt=True ):
 

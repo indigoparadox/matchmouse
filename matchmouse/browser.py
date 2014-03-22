@@ -25,11 +25,13 @@ try:
    import storage
    import tab
    import options
+   import downloads
 except ImportError:
    import matchmouse.syncstorage as syncstorage
    import matchmouse.storage as storage
    import matchmouse.tab as tab
    import matchmouse.options as options
+   import matchmouse.downloads as downloads
 
 STATUSBAR_CONTEXT_LOADING = 1
 STATUSBAR_CONTEXT_SYNCING = 2
@@ -44,6 +46,7 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
    bookmarksm = None
    bookmarkstb = None
    tabbook = None
+   downloads = None
 
    bookmarks_menuitems = {}
 
@@ -91,6 +94,10 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       syncm.connect( 'activate', self._on_sync )
       toolsmenu.append( syncm )
 
+      downloadsm = Gtk.MenuItem( 'Downloads...' )
+      downloadsm.connect( 'activate', self._on_downloads )
+      toolsmenu.append( downloadsm )
+
       optionsm = Gtk.MenuItem( 'Options...' )
       optionsm.connect( 'activate', self._on_options )
       toolsmenu.append( optionsm )
@@ -120,6 +127,10 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
       # Setup bookmarks menu.
       self.rebuild_bookmarks()
+
+      # Setup download manager.
+      self.downloads = downloads.MatchMouseDownloadsMinder( self )
+      self.downloads.start()
 
       Gtk.main()
 
@@ -260,6 +271,7 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       pass
 
    def _on_quit( self, widget ):
+      self.downloads.running = False
       Gtk.main_quit()
 
    def _on_sync( self, widget ):
@@ -275,5 +287,8 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       self.rebuild_bookmarks()
 
    def _on_options( self, widget ):
-      options.MatchMouseOptions()
+      options.MatchMouseOptionsWindow()
+
+   def _on_downloads( self, widget ):
+      downloads.MatchMouseDownloadsWindow( self ).start()
 

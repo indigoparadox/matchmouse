@@ -25,7 +25,7 @@ except ImportError:
 
 TXT_FIELDS_SYNC_KEYS = ['Server', 'Username', 'Password', 'Key']
 
-class MatchMouseOptions():
+class MatchMouseOptionsWindow():
 
    window = None
    tabs = None
