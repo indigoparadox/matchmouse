@@ -19,14 +19,11 @@ with MatchMouse.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 import gtk
-import webkit
+#import webkit
 import logging
 import storage
 import syncstorage
-try:
-   import urllib.parse as urlparse
-except:
-   import urlparse
+import tab
 
 STATUSBAR_CONTEXT_LOADING = 1
 STATUSBAR_CONTEXT_SYNCING = 2
@@ -40,10 +37,10 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
    web_view = None
    txt_url = None
    logger = None
-   data = None
    synching = False
    bookmarks = {}
    bookmarksm = None
+   tabbook = None
 
    def __init__( self ):
 
@@ -58,6 +55,10 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       filemenu = gtk.Menu()
       filem = gtk.MenuItem( 'File' )
       filem.set_submenu( filemenu )
+
+      newtabm = gtk.MenuItem( 'New Tab...' )
+      newtabm.connect( 'activate', self._on_new_tab )
+      filemenu.append( newtabm )
 
       openm = gtk.MenuItem( 'Open...' )
       openm.connect( 'activate', self._on_open )
@@ -87,16 +88,9 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
       mb.append( toolsm )
 
-      # Create the web controls.
-      self.txt_url = gtk.Entry()
-      self.txt_url.connect( 'activate', self._on_txt_url_activate )
-
-      self.web_view = webkit.WebView()
-      self.web_view.connect( 'load-started', self._on_load_started )
-      self.web_view.connect( 'load-finished', self._on_load_finished )
-
-      web_scroll = gtk.ScrolledWindow()
-      web_scroll.add( self.web_view )
+      # Create the tab notebook.
+      self.tabbook = gtk.Notebook()
+      self.tabbook.set_tab_pos( gtk.POS_TOP )
 
       # Add a status bar.
       self.statusbar = gtk.Statusbar()
@@ -105,8 +99,7 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       vbox = gtk.VBox( spacing=5 )
       vbox.set_border_width( 5 )
       vbox.pack_start( mb, False, False, 0 )
-      vbox.pack_start( self.txt_url, False, False )
-      vbox.pack_start( web_scroll, True, True )
+      vbox.pack_start( self.tabbook, True, True )
       vbox.pack_start( self.statusbar, False, False, 0 )
       self.window.add( vbox )
       self.window.show_all()
@@ -120,22 +113,11 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
       gtk.main()
 
-   def open( self, url, sync_txt=True ):
-
-      # Make sure the URL has a valid scheme.
-      url_tuple = urlparse.urlparse( url )
-      if '' == url_tuple.scheme:
-         url = 'http://' + url
-
-      self.logger.debug( 'Opening URL: {}'.format( url ) )
-
-      # Only reset the URL bar if asked to.
-      if sync_txt:
-         self.txt_url.set_text( url )
-
-      # Actually change the page.
-      self.window.set_title( 'MatchMouse - {}'.format( url ) )
-      self.web_view.open( url )
+   def open_tab( self, url=None ):
+      tab_label = gtk.Label( 'Tab' )
+      tab_frame = tab.MatchMouseBrowserTab( self, tab_label, url )
+      self.tabbook.append_page( tab_frame, tab_label )
+      self.window.show_all()
 
    def _rebuild_bookmark_menu( self, bm_parent ):
       bookmarksmenu = gtk.Menu()
@@ -170,23 +152,24 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       self.bookmarksm.set_submenu( bookmarksmenu )
       self.window.show_all()
 
-   def _on_txt_url_activate( self, entry ):
-      self.open( entry.get_text(), False )
+   def _on_new_tab( self, widget ):
+      self.open_tab()
 
    def _on_open_bookmark( self, widget ):
-      self.open( widget.bm_url, True )
+      #current_tab = \
+      #   self.tabbook.get_nth_page( self.tabbook.get_current_page() )
+      #current_tab.open( widget.bm_url, True )
+
+      self.open_tab( url=widget.bm_url )
 
    def _on_open( self, widget ):
       pass
 
-   def _on_load_started( self, web_view, frame ):
-      self.statusbar.push(
-         # TODO: Get URL.
-         STATUSBAR_CONTEXT_LOADING, 'Loading {}...'.format( '' )
-      )
-
-   def _on_load_finished( self, web_view, frame ):
-      self.statusbar.pop( STATUSBAR_CONTEXT_LOADING )
+   def _on_quit( self, widget ):
+      #if None != self.storage:
+      #   self.storage.commit()
+      #   self.storage.close()
+      gtk.main_quit()
 
    def _on_sync( self, widget ):
       # TODO: Put sync in a separate thread.
@@ -205,10 +188,4 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       #self.storage = storage.MatchMouseStorage( STORAGE_PATH )
       self.synching = False
       self.rebuild_bookmarks()
-
-   def _on_quit( self, widget ):
-      #if None != self.storage:
-      #   self.storage.commit()
-      #   self.storage.close()
-      gtk.main_quit()
 
