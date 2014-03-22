@@ -18,8 +18,7 @@ with MatchMouse.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 import sys
-import gtk
-#import webkit
+from gi.repository import Gtk
 import logging
 import storage
 import syncstorage
@@ -46,60 +45,60 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
       self.logger = logging.getLogger( 'matchmouse.browser' )
 
-      self.window = gtk.Window()
+      self.window = Gtk.Window()
       self.window.connect( 'delete_event', self._on_quit )
 
-      mb = gtk.MenuBar()
+      mb = Gtk.MenuBar()
 
       # Create the file menu.
-      filemenu = gtk.Menu()
-      filem = gtk.MenuItem( 'File' )
+      filemenu = Gtk.Menu()
+      filem = Gtk.MenuItem( 'File' )
       filem.set_submenu( filemenu )
 
-      newtabm = gtk.MenuItem( 'New Tab...' )
+      newtabm = Gtk.MenuItem( 'New Tab...' )
       newtabm.connect( 'activate', self._on_new_tab )
       filemenu.append( newtabm )
 
-      openm = gtk.MenuItem( 'Open...' )
+      openm = Gtk.MenuItem( 'Open...' )
       openm.connect( 'activate', self._on_open )
       filemenu.append( openm )
 
-      exitm = gtk.MenuItem( 'Exit' )
+      exitm = Gtk.MenuItem( 'Exit' )
       exitm.connect( 'activate', self._on_quit )
       filemenu.append( exitm )
 
       mb.append( filem )
 
       # Create the bookmarks menu.
-      bookmarksmenu = gtk.Menu()
-      self.bookmarksm = gtk.MenuItem( 'Bookmarks' )
+      bookmarksmenu = Gtk.Menu()
+      self.bookmarksm = Gtk.MenuItem( 'Bookmarks' )
       self.bookmarksm.set_submenu( bookmarksmenu )
 
       mb.append( self.bookmarksm )
 
       # Create the tools menu.
-      toolsmenu = gtk.Menu()
-      toolsm = gtk.MenuItem( 'Tools' )
+      toolsmenu = Gtk.Menu()
+      toolsm = Gtk.MenuItem( 'Tools' )
       toolsm.set_submenu( toolsmenu )
 
-      syncm = gtk.MenuItem( 'Sync Now' )
+      syncm = Gtk.MenuItem( 'Sync Now' )
       syncm.connect( 'activate', self._on_sync )
       toolsmenu.append( syncm )
 
       mb.append( toolsm )
 
       # Create the tab notebook.
-      self.tabbook = gtk.Notebook()
-      self.tabbook.set_tab_pos( gtk.POS_TOP )
+      self.tabbook = Gtk.Notebook()
+      #self.tabbook.set_tab_pos( Gtk.POS_TOP )
 
       # Add a status bar.
-      self.statusbar = gtk.Statusbar()
+      self.statusbar = Gtk.Statusbar()
 
       # Pack and display.
-      vbox = gtk.VBox( spacing=5 )
+      vbox = Gtk.VBox( spacing=5 )
       vbox.set_border_width( 5 )
       vbox.pack_start( mb, False, False, 0 )
-      vbox.pack_start( self.tabbook, True, True )
+      vbox.pack_start( self.tabbook, True, True, 0 )
       vbox.pack_start( self.statusbar, False, False, 0 )
       self.window.add( vbox )
       self.window.show_all()
@@ -107,17 +106,17 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       # Setup bookmarks menu.
       self.rebuild_bookmarks()
 
-      gtk.main()
+      Gtk.main()
 
    def open_tab( self, url=None ):
       
       # Create the label/close button/frame.
-      tab_label = gtk.Label( 'Tab' )
+      tab_label = Gtk.Label( 'Tab' )
 
-      tab_close = gtk.Button()
-      tab_close_image = gtk.Image()
-      tab_close_image.set_from_stock(
-         gtk.STOCK_CLOSE, gtk.ICON_SIZE_SMALL_TOOLBAR
+      tab_close = Gtk.Button()
+      tab_close_image = Gtk.Image()
+      tab_close_image.set_from_icon_name(
+         'window-close', Gtk.IconSize.SMALL_TOOLBAR
       )
       tab_close.set_image( tab_close_image )
       tab_close.connect( 'clicked', self._on_tab_close )
@@ -125,8 +124,8 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       tab_frame = tab.MatchMouseBrowserTab( self, tab_label, tab_close, url )
 
       # Setup a little HBox to hold the label/close button.
-      hbox = gtk.HBox( spacing=5 )
-      hbox.pack_start( tab_label, True, True )
+      hbox = Gtk.HBox( spacing=5 )
+      hbox.pack_start( tab_label, True, True, 0 )
       hbox.pack_start( tab_close, False, False, 0 )
       hbox.show_all()
 
@@ -149,9 +148,9 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
          self.tabbook.remove_page( index )
 
    def _rebuild_bookmark_menu( self, bm_parent ):
-      bookmarksmenu = gtk.Menu()
+      bookmarksmenu = Gtk.Menu()
       for bookmark_iter in bm_parent:
-         bmm_iter = gtk.MenuItem( bookmark_iter['title'] )
+         bmm_iter = Gtk.MenuItem( bookmark_iter['title'] )
 
          # Create link/submenu as appropriate.
          if 'folder' == bookmark_iter['type']:
@@ -201,7 +200,7 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       #if None != self.storage:
       #   self.storage.commit()
       #   self.storage.close()
-      gtk.main_quit()
+      Gtk.main_quit()
 
    def _on_sync( self, widget ):
       # TODO: Put sync in a separate thread.

@@ -17,15 +17,15 @@ You should have received a copy of the GNU General Public License along
 with MatchMouse.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import gtk
-import webkit
+from gi.repository import Gtk
+from gi.repository import WebKit 
 import browser
 try:
    import urllib.parse as urlparse
 except:
    import urlparse
 
-class MatchMouseBrowserTab( gtk.Frame ):
+class MatchMouseBrowserTab( Gtk.Frame ):
 
    browser = None
    txt_url = None
@@ -36,36 +36,36 @@ class MatchMouseBrowserTab( gtk.Frame ):
    tab_close = -1
 
    def __init__( self, browser, label=None, close=None, url=None ):
-      gtk.Frame.__init__( self ) 
+      Gtk.Frame.__init__( self ) 
 
       self.browser = browser
       self.label = label
       self.close = close
 
       # Create the web controls.
-      self.txt_url = gtk.Entry()
+      self.txt_url = Gtk.Entry()
       self.txt_url.connect( 'activate', self._on_txt_url_activate )
 
-      self.web_view = webkit.WebView()
+      self.web_view = WebKit.WebView()
       self.web_view.connect( 'load-started', self._on_load_started )
       self.web_view.connect( 'load-finished', self._on_load_finished )
 
-      web_scroll = gtk.ScrolledWindow()
+      web_scroll = Gtk.ScrolledWindow()
       web_scroll.add( self.web_view )
 
-      self.img_icon = gtk.Image()
-      self.img_icon.set_from_stock(
-         gtk.STOCK_MISSING_IMAGE, gtk.ICON_SIZE_SMALL_TOOLBAR
+      self.img_icon = Gtk.Image()
+      self.img_icon.set_from_icon_name(
+         'network-idle', Gtk.IconSize.SMALL_TOOLBAR
       )
 
-      hbox_txt = gtk.HBox()
+      hbox_txt = Gtk.HBox()
       hbox_txt.pack_start( self.img_icon, False, False, 0 )
-      hbox_txt.pack_start( self.txt_url, True, True )
+      hbox_txt.pack_start( self.txt_url, True, True, 0 )
 
-      vbox = gtk.VBox( spacing=5 )
+      vbox = Gtk.VBox( spacing=5 )
       vbox.set_border_width( 0 )
-      vbox.pack_start( hbox_txt, False, False )
-      vbox.pack_start( web_scroll, True, True )
+      vbox.pack_start( hbox_txt, False, False, 0 )
+      vbox.pack_start( web_scroll, True, True, 0 )
       self.add( vbox )
       #self.show_all()
 
@@ -81,17 +81,19 @@ class MatchMouseBrowserTab( gtk.Frame ):
          browser.STATUSBAR_CONTEXT_LOADING, 'Loading {}...'.format( '' )
       )
 
-      self.img_icon.set_from_stock(
-         gtk.STOCK_REFRESH, gtk.ICON_SIZE_SMALL_TOOLBAR
+      self.img_icon.set_from_icon_name(
+         'network-transmit-receive', Gtk.IconSize.SMALL_TOOLBAR
       )
 
    def _on_load_finished( self, web_view, frame ):
       self.browser.statusbar.pop( browser.STATUSBAR_CONTEXT_LOADING )
 
       # TODO: Change the icon depending on load/SSL status.
-      self.img_icon.set_from_stock(
-         gtk.STOCK_OK, gtk.ICON_SIZE_SMALL_TOOLBAR
+      self.img_icon.set_from_icon_name(
+         'network-idle', Gtk.IconSize.SMALL_TOOLBAR
       )
+
+      #print dir( self.web_view )
 
    def open( self, url, sync_txt=True ):
 
