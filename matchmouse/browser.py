@@ -134,10 +134,10 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
       Gtk.main()
 
-   def open_tab( self, url=None, bm_id=None, view=None ):
-      
+   def _create_tab( self, frame, title='New Tab' ):
+
       # Create the label/close button/frame.
-      tab_label = Gtk.Label( 'Tab' )
+      tab_label = Gtk.Label( title )
 
       tab_close = Gtk.Button()
       tab_close_image = Gtk.Image()
@@ -147,13 +147,9 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       tab_close.set_image( tab_close_image )
       tab_close.connect( 'clicked', self._on_tab_close )
 
-      tab_frame = tab.MatchMouseBrowserTab(
-         self, label=tab_label, close=tab_close, url=url, view=view
-      )
-
-      # Hold on to the bookmark ID for favicon purposes.
-      if bm_id:
-         tab_frame.bm_id = bm_id
+      # Set the label/close so the tab can change its own label later.
+      frame.label = tab_label
+      frame.close = tab_close
 
       # Setup a little HBox to hold the label/close button.
       hbox = Gtk.HBox( spacing=5 )
@@ -161,9 +157,19 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       hbox.pack_start( tab_close, False, False, 0 )
       hbox.show_all()
 
-      tab_close.tab_index = self.tabbook.append_page( tab_frame, hbox )
+      tab_close.tab_index = self.tabbook.append_page( frame, hbox )
 
       self.window.show_all()
+
+   def open_tab_page( self, url=None, bm_id=None, view=None ):
+
+      tab_frame = tab.MatchMouseBrowserTab( self, url=url, view=view )
+
+      # Hold on to the bookmark ID for favicon purposes.
+      if bm_id:
+         tab_frame.bm_id = bm_id
+
+      self._create_tab( tab_frame )
 
    def close_tab( self, index=None ):
       if None != index:
@@ -255,7 +261,7 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       self.bookmarks_menuitems[bm_id].set_image( icon_image )
 
    def _on_new_tab( self, widget ):
-      self.open_tab()
+      self.open_tab_page()
 
    def _on_tab_close( self, widget ):
       self.close_tab( index=widget.tab_index )
@@ -265,7 +271,7 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       #   self.tabbook.get_nth_page( self.tabbook.get_current_page() )
       #current_tab.open( widget.bm_url, True )
 
-      self.open_tab( url=widget.bm_url, bm_id=widget.bm_id )
+      self.open_tab_page( url=widget.bm_url, bm_id=widget.bm_id )
 
    def _on_open( self, widget ):
       pass
