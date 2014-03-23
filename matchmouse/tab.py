@@ -117,6 +117,13 @@ class MatchMouseBrowserTab( Gtk.Frame ):
          self.img_icon.set_from_icon_name(
             'network-transmit-receive', Gtk.IconSize.SMALL_TOOLBAR
          )
+
+      elif WebKit2.LoadEvent.COMMITTED == load_event:
+         # TODO: Show more information on certs in the interface.
+
+         # TODO: Implement Perspectives protocol.
+         print self.web_view.get_tls_info()[1].get_issuer()
+
       elif WebKit2.LoadEvent.FINISHED == load_event:
          self.txt_url.set_text( web_view.get_uri() )
 
