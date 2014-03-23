@@ -183,6 +183,12 @@ class MatchMouseBrowserTab( Gtk.Frame ):
       #self.window.set_title( 'MatchMouse - {}'.format( url ) )
       self.web_view.load_uri( url )
 
+   def back( self ):
+      self.web_view.go_back()
+
+   def forward( self ):
+      self.web_view.go_forward()
+
    def refresh( self ):
       # TODO: Check if shift is held down for cache bypass.
       self.web_view.reload()
