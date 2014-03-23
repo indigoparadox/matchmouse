@@ -279,6 +279,8 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       bookmarksmenu = self._rebuild_bookmark_menu( self.bookmarks[0] )
       self.bookmarksm.set_submenu( bookmarksmenu )
 
+      # TODO: Can we cache the bookmarks in binary form and then just rebuild
+      #       the menu on launch?
       self._rebuild_bookmark_menu( self.bookmarks[1], self.bookmarkstb )
 
       self.window.show_all()
