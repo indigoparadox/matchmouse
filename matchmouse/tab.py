@@ -146,7 +146,7 @@ class MatchMouseBrowserTab( Gtk.Frame ):
          # TODO: Show more information on certs in the interface.
 
          # TODO: Implement Perspectives protocol.
-         print self.web_view.get_tls_info()[1].get_issuer()
+         #print self.web_view.get_tls_info()[1].get_issuer()
 
       elif WebKit2.LoadEvent.FINISHED == load_event:
          self.txt_url.set_text( web_view.get_uri() )
@@ -158,13 +158,15 @@ class MatchMouseBrowserTab( Gtk.Frame ):
             'network-idle', Gtk.IconSize.SMALL_TOOLBAR
          )
 
-         self.label.set_label( self.web_view.get_title() )
+         title = self.web_view.get_title()
+         if title:
+            self.label.set_label( title )
 
          #print dir( self.web_view )
 
    def _on_notify_favicon( self, web_view, icon_uri ):
 
-      print icon_uri
+      #print icon_uri
       
       if '' != self.bm_id:
          # TODO: Only update the icon if none is present or it's different?
