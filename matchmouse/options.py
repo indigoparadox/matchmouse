@@ -44,7 +44,7 @@ class MatchMouseOptionsWindow():
       sync_vbox = Gtk.VBox( spacing=5 )
       my_storage = storage.MatchMouseStorage()
       for label_iter in TXT_FIELDS_SYNC_KEYS:
-         sync_txt_hbox = MatchMouseOptions._add_field( label_iter )
+         sync_txt_hbox = MatchMouseOptionsWindow._add_field( label_iter )
          storage_key = 'sync_{}'.format( label_iter.lower() )
          self.txt_fields[storage_key] = sync_txt_hbox[0]
          self.txt_fields[storage_key].set_text( my_storage.get_option(
