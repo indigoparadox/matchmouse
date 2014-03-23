@@ -142,7 +142,7 @@ class MatchMouseBrowserTab( Gtk.Frame ):
             'network-transmit-receive', Gtk.IconSize.SMALL_TOOLBAR
          )
 
-      elif WebKit2.LoadEvent.COMMITTED == load_event:
+      #elif WebKit2.LoadEvent.COMMITTED == load_event:
          # TODO: Show more information on certs in the interface.
 
          # TODO: Implement Perspectives protocol.
