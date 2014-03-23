@@ -23,14 +23,12 @@ try:
 except ImportError:
    import matchmouse.storage as storage
 
-TXT_FIELDS_SYNC_KEYS = ['Server', 'Username', 'Password', 'Key']
-
 class MatchMouseOptionsWindow():
 
    window = None
    tabs = None
 
-   txt_fields = {}
+   fields = {}
 
    def __init__( self ):
 
@@ -39,21 +37,8 @@ class MatchMouseOptionsWindow():
 
       self.tabs = Gtk.Notebook()
 
-      # Create Tab: Sync
-      sync_tab = Gtk.Frame()
-      sync_vbox = Gtk.VBox( spacing=5 )
-      my_storage = storage.MatchMouseStorage()
-      for label_iter in TXT_FIELDS_SYNC_KEYS:
-         sync_txt_hbox = MatchMouseOptionsWindow._add_field( label_iter )
-         storage_key = 'sync_{}'.format( label_iter.lower() )
-         self.txt_fields[storage_key] = sync_txt_hbox[0]
-         self.txt_fields[storage_key].set_text( my_storage.get_option(
-            storage_key
-         ) )
-         sync_vbox.pack_start( sync_txt_hbox[1], False, False, 0 )
-      my_storage.close()
-      sync_tab.add( sync_vbox )
-      self.tabs.append_page( sync_tab, Gtk.Label( 'Sync' ) )
+      self._add_page( 'Content', FIELDS_CONTENT_KEYS )
+      self._add_page( 'Sync', FIELDS_SYNC_KEYS )
 
       # Create OK/Cancel buttons.
       ok_btn = Gtk.Button( 'OK' )
@@ -75,13 +60,80 @@ class MatchMouseOptionsWindow():
       self.window.add( vbox )
       self.window.show_all()
 
+   def _add_page( self, tab_label, keys ):
+
+      ''' Create a tab and add it to the main options notebook. '''
+
+      tab = Gtk.Frame()
+      vbox = Gtk.VBox( spacing=5 )
+      
+      my_storage = storage.MatchMouseStorage()
+      
+      for label_iter in keys.keys():
+         
+         # Create and append the field.
+         field_hbox = keys[label_iter]( label_iter )
+         storage_key = '{}_{}'.format( tab_label.lower(), label_iter.lower() )
+         self.fields[storage_key] = field_hbox[0]
+         vbox.pack_start( field_hbox[1], False, False, 0 )
+
+         # Add default data to the field.
+         default = my_storage.get_option( storage_key )
+         if default:
+            self.fields[storage_key].set_text( default )
+      
+      my_storage.close()
+
+      tab.add( vbox )
+      self.tabs.append_page( tab, Gtk.Label( tab_label ) )
+
    @staticmethod
-   def _add_field( field_label ):
+   def _create_field_txt( field_label ):
       hbox = Gtk.HBox( spacing=5 )
-      txt_field = Gtk.Entry()
+      field = Gtk.Entry()
       hbox.pack_start( Gtk.Label( field_label ), False, False, 0 )
-      hbox.pack_start( txt_field, True, True, 0 )
-      return (txt_field, hbox)
+      hbox.pack_start( field, True, True, 0 )
+      return (field, hbox)
+
+   @staticmethod
+   def _create_field_dir( field_label ):
+      hbox = Gtk.HBox( spacing=5 )
+      field = Gtk.Label()
+      btn_choose = Gtk.Button( 'Select...' )
+      btn_choose.connect(
+         'clicked',
+         MatchMouseOptionsWindow._choose_directory,
+         # TODO: Load default data in here?
+         (field,'')
+      )
+      hbox.pack_start( Gtk.Label( field_label ), False, False, 0 )
+      hbox.pack_start( field, True, True, 0 )
+      hbox.pack_start( btn_choose, False, False, 0 )
+      return (field, hbox)
+
+   @staticmethod
+   def _choose_directory( widget, data ):
+      
+      ''' Present the user with a directory chooser and return the chosen
+      directory path. '''
+
+      label = data[0]
+      default = data[1]
+
+      # TODO: Start in default directory.
+
+      choose_dialog = Gtk.FileChooserDialog(
+         title='Select Directory',
+         buttons=( Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+            Gtk.STOCK_OK, Gtk.ResponseType.OK )
+      )
+      choose_dialog.set_action( Gtk.FileChooserAction.SELECT_FOLDER )
+
+      rc = choose_dialog.run()
+      if Gtk.ResponseType.OK == rc:
+         label.set_text( choose_dialog.get_filename() )
+
+      choose_dialog.destroy()
 
    def _on_cancel( self, widget ):
       self.window.destroy()
@@ -90,12 +142,23 @@ class MatchMouseOptionsWindow():
       
       # Iterate through all options fields and save their values.
       my_storage = storage.MatchMouseStorage()
-      for field_key_iter in self.txt_fields.keys():
+      for field_key_iter in self.fields.keys():
          my_storage.set_option(
-            field_key_iter, self.txt_fields[field_key_iter].get_text()
+            field_key_iter, self.fields[field_key_iter].get_text()
          )
       my_storage.commit()
       my_storage.close()
 
       self.window.destroy()
+
+FIELDS_SYNC_KEYS = {
+   'Server': MatchMouseOptionsWindow._create_field_txt,
+   'Username': MatchMouseOptionsWindow._create_field_txt,
+   'Password': MatchMouseOptionsWindow._create_field_txt,
+   'Key': MatchMouseOptionsWindow._create_field_txt
+}
+
+FIELDS_CONTENT_KEYS = {
+   'Downloads': MatchMouseOptionsWindow._create_field_dir,
+}
 

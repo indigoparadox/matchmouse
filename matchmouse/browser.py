@@ -360,8 +360,16 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       return True
 
    def _on_decide_destination( self, download, suggested_filename ):
+      # Grab the downloads directory from storage.
+      # TODO: Show a file chooser dialog.
+      my_storage = storage.MatchMouseStorage()
+      download_dir = my_storage.get_option( 'cache_dir' )
+      if None == download_dir:
+         download_dir = os.path.expanduser( '~' )
+      my_storage.close()
+
       download.set_destination( 'file://' + os.path.join(
-         os.path.expanduser( '~' ), suggested_filename
+         download_dir, suggested_filename
       ) )
 
    def _on_created_destination( self, download, destination ):

@@ -70,7 +70,6 @@ class MatchMouseBrowserTab( Gtk.Frame ):
       self.web_view.connect( 'notify::favicon', self._on_notify_favicon )
       self.web_view.connect( 'create', self._on_create_web_view )
       #self.web_view.connect( 'web-view-ready', self._on_web_view_ready )
-      #self.web_view.connect( 'download-requested', self._on_download_requested )
 
       #web_scroll = Gtk.ScrolledWindow()
       #web_scroll.add( self.web_view )
