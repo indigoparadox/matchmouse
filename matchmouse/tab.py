@@ -52,6 +52,19 @@ class MatchMouseBrowserTab( Gtk.Frame ):
 
       self.browser = browser
 
+      # Create the toolbar.
+      tb = Gtk.Toolbar()
+
+      backb = MatchMouseBrowserTab._create_tool_button(
+         'go-previous', self._on_back
+      )
+      forwardb = MatchMouseBrowserTab._create_tool_button(
+         'go-next', self._on_forward
+      )
+      refreshb = MatchMouseBrowserTab._create_tool_button(
+         'view-refresh', self._on_refresh
+      )
+
       # Create the web controls.
       self.txt_url = Gtk.Entry()
       self.txt_url.connect( 'activate', self._on_txt_url_activate )
@@ -79,7 +92,10 @@ class MatchMouseBrowserTab( Gtk.Frame ):
          'network-idle', Gtk.IconSize.SMALL_TOOLBAR
       )
 
-      hbox_txt = Gtk.HBox()
+      hbox_txt = Gtk.HBox( spacing=5 )
+      hbox_txt.pack_start( backb, False, False, 0 )
+      hbox_txt.pack_start( forwardb, False, False, 0 )
+      hbox_txt.pack_start( refreshb, False, False, 0 )
       hbox_txt.pack_start( self.img_icon, False, False, 0 )
       hbox_txt.pack_start( self.txt_url, True, True, 0 )
 
@@ -92,6 +108,15 @@ class MatchMouseBrowserTab( Gtk.Frame ):
 
       if url:
          self.open( url, True )
+
+   @staticmethod
+   def _create_tool_button( icon_name, handler ):
+      image = Gtk.Image()
+      image.set_from_icon_name( icon_name, Gtk.IconSize.SMALL_TOOLBAR )
+      button = Gtk.Button()
+      button.set_image( image )
+      button.connect( 'clicked', handler )
+      return button
 
    @staticmethod
    def create_web_view():
@@ -183,13 +208,13 @@ class MatchMouseBrowserTab( Gtk.Frame ):
       #self.window.set_title( 'MatchMouse - {}'.format( url ) )
       self.web_view.load_uri( url )
 
-   def back( self ):
+   def _on_back( self, widget ):
       self.web_view.go_back()
 
-   def forward( self ):
+   def _on_forward( self, widget ):
       self.web_view.go_forward()
 
-   def refresh( self ):
+   def _on_refresh( self, widget ):
       # TODO: Check if shift is held down for cache bypass.
       self.web_view.reload()
 

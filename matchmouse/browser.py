@@ -108,27 +108,6 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
       mb.append( toolsm )
 
-      # Create the toolbar.
-      tb = Gtk.Toolbar()
-
-      backi = Gtk.Image()
-      backi.set_from_icon_name( 'go-previous', Gtk.IconSize.SMALL_TOOLBAR )
-      backb = Gtk.ToolButton( label_widget=backi )
-      backb.connect( 'clicked', self._on_back )
-      tb.insert( backb, -1 )
-
-      forwardi = Gtk.Image()
-      forwardi.set_from_icon_name( 'go-next', Gtk.IconSize.SMALL_TOOLBAR )
-      forwardb = Gtk.ToolButton( label_widget=forwardi )
-      forwardb.connect( 'clicked', self._on_forward )
-      tb.insert( forwardb, -1 )
-
-      refreshi = Gtk.Image()
-      refreshi.set_from_icon_name( 'view-refresh', Gtk.IconSize.SMALL_TOOLBAR )
-      refreshb = Gtk.ToolButton( label_widget=refreshi )
-      refreshb.connect( 'clicked', self._on_refresh )
-      tb.insert( refreshb, -1 )
-
       # Add a bookmarks toolbar.
       self.bookmarkstb = Gtk.MenuBar()
 
@@ -143,7 +122,6 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       vbox = Gtk.VBox( spacing=5 )
       vbox.set_border_width( 5 )
       vbox.pack_start( mb, False, False, 0 )
-      vbox.pack_start( tb, False, False, 0 )
       vbox.pack_start( self.bookmarkstb, False, False, 0 )
       vbox.pack_start( self.tabbook, True, True, 0 )
       vbox.pack_start( self.statusbar, False, False, 0 )
@@ -330,15 +308,6 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
    def _on_open( self, widget ):
       pass
 
-   def _on_back( self, widget ):
-      self.tabbook.get_nth_page( self.tabbook.get_current_page() ).back()
-
-   def _on_forward( self, widget ):
-      self.tabbook.get_nth_page( self.tabbook.get_current_page() ).forward()
-
-   def _on_refresh( self, widget ):
-      self.tabbook.get_nth_page( self.tabbook.get_current_page() ).refresh()
-      
    def _on_quit( self, widget ):
       self.downloads.running = False
 
