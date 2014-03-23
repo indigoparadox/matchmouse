@@ -17,9 +17,11 @@ You should have received a copy of the GNU General Public License along
 with MatchMouse.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import sys
 from gi.repository import Gtk
+from gi.repository import WebKit2
+import sys
 import logging
+import os
 try:
    import syncstorage
    import storage
@@ -35,6 +37,8 @@ except ImportError:
 
 STATUSBAR_CONTEXT_LOADING = 1
 STATUSBAR_CONTEXT_SYNCING = 2
+
+DEFAULT_CACHE_DIR = '/tmp/matchmouse'
 
 class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
@@ -134,8 +138,31 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       self.window.add( vbox )
       self.window.show_all()
 
+      # Load options.
+      my_storage = storage.MatchMouseStorage()
+
       # Setup bookmarks menu.
-      self.rebuild_bookmarks()
+      self.rebuild_bookmarks( reload_from_storage=my_storage )
+
+      # Setup the default web context.
+      cache_dir = my_storage.get_option( 'cache_dir' )
+      if None == cache_dir:
+         self.logger.debug( 'No cache directory specified. Using default...' )
+         cache_dir = DEFAULT_CACHE_DIR
+      if not os.path.isdir( cache_dir ):
+         self.logger.debug( 'Cache directory not found. Creating...' )
+         os.mkdir( cache_dir )
+
+      self.context = WebKit2.WebContext.get_default()
+      self.context.set_disk_cache_directory( cache_dir )
+
+      #self.context.set_process_model(
+      #   WebKit2.ProcessModel.MULTIPLE_SECONDARY_PROCESSES
+      #)
+
+      self.context.connect( 'download-started', self._on_download_started )
+
+      my_storage.close()
 
       # Setup download manager.
       self.downloads = downloads.MatchMouseDownloadsMinder( self )
@@ -250,15 +277,13 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
       return bookmarksmenu
 
-   def rebuild_bookmarks( self, reload_from_storage=True ):
+   def rebuild_bookmarks( self, reload_from_storage=None ):
 
       ''' Rebuild the bookmarks menu from storage. '''
       
-      if not self.bookmarks or reload_from_storage:
+      if reload_from_storage:
          # Grab bookmarks from storage.
-         my_storage = storage.MatchMouseStorage()
-         self.bookmarks = my_storage.list_bookmarks()
-         my_storage.close()
+         self.bookmarks = reload_from_storage.list_bookmarks()
 
       # Put up the menus.
       bookmarksmenu = self._rebuild_bookmark_menu( self.bookmarks[0] )
@@ -323,4 +348,22 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
    def _on_downloads( self, widget ):
       self.open_tab_downloads()
+
+   # = Download Handlers =
+
+   # TODO: Work these into the MatchMouseDownloads* classes and use signals
+   #       instead of a polling thread.
+
+   def _on_download_started( self, context, download ):
+      download.connect( 'decide-destination', self._on_decide_destination )
+      download.connect( 'created-destination', self._on_created_destination )
+      return True
+
+   def _on_decide_destination( self, download, suggested_filename ):
+      download.set_destination( 'file://' + os.path.join(
+         os.path.expanduser( '~' ), suggested_filename
+      ) )
+
+   def _on_created_destination( self, download, destination ):
+      self.downloads.add_download( download )
 

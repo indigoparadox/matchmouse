@@ -122,7 +122,7 @@ class MatchMouseDownloadsTab( Gtk.Frame, threading.Thread ):
                ) )
 
                frame_tuple = MatchMouseDownloadsTab._create_download_frame(
-                  download.get_destination_uri()
+                  download.get_destination()
                )
 
                self.downloads_frames.append( frame_tuple[0] )
@@ -136,7 +136,7 @@ class MatchMouseDownloadsTab( Gtk.Frame, threading.Thread ):
 
             # Update progress bar.
             self.downloads_progresses[index_iter].set_fraction(
-               download.get_progress()
+               download.get_estimated_progress()
             )
 
          time.sleep( 1 )

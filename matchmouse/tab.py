@@ -20,7 +20,7 @@ with MatchMouse.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 import os
 from gi.repository import Gtk
-from gi.repository import WebKit 
+from gi.repository import WebKit2
 try:
    import browser
 except ImportError:
@@ -61,19 +61,19 @@ class MatchMouseBrowserTab( Gtk.Frame ):
       # Create a new webview if none was provided.
       if not view:
          self.web_view = MatchMouseBrowserTab.create_web_view()
-
       else:
          self.web_view = view
 
-      self.web_view.connect( 'load-started', self._on_load_started )
-      self.web_view.connect( 'load-finished', self._on_load_finished )
-      self.web_view.connect( 'icon-loaded', self._on_icon_loaded )
-      self.web_view.connect( 'create-web-view', self._on_create_web_view )
+      # Setup web_view events.
+      self.web_view.connect( 'load-changed', self._on_load_changed )
+      # FIXME: This doesn't seem to fire.
+      self.web_view.connect( 'notify::favicon', self._on_notify_favicon )
+      self.web_view.connect( 'create', self._on_create_web_view )
       #self.web_view.connect( 'web-view-ready', self._on_web_view_ready )
-      self.web_view.connect( 'download-requested', self._on_download_requested )
+      #self.web_view.connect( 'download-requested', self._on_download_requested )
 
-      web_scroll = Gtk.ScrolledWindow()
-      web_scroll.add( self.web_view )
+      #web_scroll = Gtk.ScrolledWindow()
+      #web_scroll.add( self.web_view )
 
       self.img_icon = Gtk.Image()
       self.img_icon.set_from_icon_name(
@@ -87,7 +87,7 @@ class MatchMouseBrowserTab( Gtk.Frame ):
       vbox = Gtk.VBox( spacing=5 )
       vbox.set_border_width( 0 )
       vbox.pack_start( hbox_txt, False, False, 0 )
-      vbox.pack_start( web_scroll, True, True, 0 )
+      vbox.pack_start( self.web_view, True, True, 0 )
       self.add( vbox )
       #self.show_all()
 
@@ -96,41 +96,44 @@ class MatchMouseBrowserTab( Gtk.Frame ):
 
    @staticmethod
    def create_web_view():
-      web_view = WebKit.WebView()
+      #context = WebKit2.WebContext()
+      #web_view = WebKit2.WebView.new_with_context( context )
+      web_view = WebKit2.WebView()
       return web_view
 
    def _on_txt_url_activate( self, entry ):
       self.open( entry.get_text(), False )
 
-   def _on_load_started( self, web_view, frame ):
+   def _on_load_changed( self, web_view, load_event ):
 
-      #self.txt_url.set_text( web_view.get_uri() )
+      if WebKit2.LoadEvent.STARTED == load_event:
+         #self.txt_url.set_text( web_view.get_uri() )
 
-      self.browser.statusbar.push(
-         # TODO: Get URL.
-         browser.STATUSBAR_CONTEXT_LOADING, 'Loading {}...'.format( '' )
-      )
+         self.browser.statusbar.push(
+            # TODO: Get URL.
+            browser.STATUSBAR_CONTEXT_LOADING, 'Loading {}...'.format( '' )
+         )
 
-      self.img_icon.set_from_icon_name(
-         'network-transmit-receive', Gtk.IconSize.SMALL_TOOLBAR
-      )
+         self.img_icon.set_from_icon_name(
+            'network-transmit-receive', Gtk.IconSize.SMALL_TOOLBAR
+         )
+      elif WebKit2.LoadEvent.FINISHED == load_event:
+         self.txt_url.set_text( web_view.get_uri() )
 
-   def _on_load_finished( self, web_view, frame ):
+         self.browser.statusbar.pop( browser.STATUSBAR_CONTEXT_LOADING )
 
-      self.txt_url.set_text( web_view.get_uri() )
+         # TODO: Change the icon depending on load/SSL status.
+         self.img_icon.set_from_icon_name(
+            'network-idle', Gtk.IconSize.SMALL_TOOLBAR
+         )
 
-      self.browser.statusbar.pop( browser.STATUSBAR_CONTEXT_LOADING )
+         self.label.set_label( self.web_view.get_title() )
 
-      # TODO: Change the icon depending on load/SSL status.
-      self.img_icon.set_from_icon_name(
-         'network-idle', Gtk.IconSize.SMALL_TOOLBAR
-      )
+         #print dir( self.web_view )
 
-      self.label.set_label( self.web_view.get_title() )
+   def _on_notify_favicon( self, web_view, icon_uri ):
 
-      #print dir( self.web_view )
-
-   def _on_icon_loaded( self, web_view, icon_uri ):
+      print icon_uri
       
       if '' != self.bm_id:
          # TODO: Only update the icon if none is present or it's different?
@@ -153,13 +156,6 @@ class MatchMouseBrowserTab( Gtk.Frame ):
    #def _on_web_view_ready( self, web_view ):
    #   self.txt_url.set_text( web_view.get_uri() )
    
-   def _on_download_requested( self, web_view, download ):
-      download.set_destination_uri( 'file://' + os.path.join(
-         os.path.expanduser( '~' ), download.get_suggested_filename()
-      ) )
-      self.browser.downloads.add_download( download )
-      return True
-
    def open( self, url, sync_txt=True ):
 
       # Make sure the URL has a valid scheme.
@@ -179,7 +175,7 @@ class MatchMouseBrowserTab( Gtk.Frame ):
 
       # Actually change the page.
       #self.window.set_title( 'MatchMouse - {}'.format( url ) )
-      self.web_view.open( url )
+      self.web_view.load_uri( url )
 
    def refresh( self ):
       # TODO: Check if shift is held down for cache bypass.
