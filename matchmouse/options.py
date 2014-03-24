@@ -33,6 +33,7 @@ class MatchMouseOptionsWindow():
    def __init__( self ):
 
       self.window = Gtk.Window()
+      self.window.set_title( 'MatchMouse Options' )
       self.window.connect( 'delete_event', self._on_cancel )
 
       self.tabs = Gtk.Notebook()
