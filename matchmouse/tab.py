@@ -83,6 +83,9 @@ class MatchMouseBrowserTab( Gtk.Frame ):
       self.web_view.connect( 'notify::favicon', self._on_notify_favicon )
       self.web_view.connect( 'create', self._on_create_web_view )
       #self.web_view.connect( 'web-view-ready', self._on_web_view_ready )
+      self.web_view.connect(
+         'web-process-crashed', self._on_web_process_crashed
+      )
 
       #web_scroll = Gtk.ScrolledWindow()
       #web_scroll.add( self.web_view )
@@ -219,4 +222,7 @@ class MatchMouseBrowserTab( Gtk.Frame ):
    def _on_refresh( self, widget ):
       # TODO: Check if shift is held down for cache bypass.
       self.web_view.reload()
+
+   def _on_web_process_crashed( self, web_view ):
+      self.logger.error( 'Web process crashed.' )
 
