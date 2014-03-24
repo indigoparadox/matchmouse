@@ -40,6 +40,11 @@ STATUSBAR_CONTEXT_SYNCING = 2
 
 DEFAULT_CACHE_DIR = '/tmp/matchmouse'
 
+ICON_LOCATIONS = [
+   '/usr/share/pixmaps/matchmouse.png'
+   'matchmouse.png'
+]
+
 class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
 
    window = None
@@ -59,7 +64,14 @@ class MatchMouseBrowser(): # needs GTK, Python, Webkit-GTK
       self.logger = logging.getLogger( 'matchmouse.browser' )
 
       self.window = Gtk.Window()
+      self.window.set_title( 'MatchMouse Browser' )
       self.window.connect( 'delete_event', self._on_quit )
+
+      # TODO: Try to find matchmouse.png on the system.
+      for location_iter in ICON_LOCATIONS:
+         if os.path.isfile( location_iter ):
+            self.window.set_icon_from_file( location_iter )
+            break
 
       mb = Gtk.MenuBar()
 
