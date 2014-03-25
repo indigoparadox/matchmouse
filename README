@@ -4,23 +4,26 @@
 * requests
 * pyyaml
 * M2Crypto
-* PyGTK
-* PyWebKitGTK
+* GTK in GIR
+* WebKit2 in GIR
 
 = Goals =
 
-== Immediate Goals ==
+== Completed Goals ==
 
 * Download bookmarks from a local Firefox Sync/Weave server.
+* Remove yaml requirement and store config in SQLite DB.
+
+== Immediate Goals ==
+
+* HTTPS enforcement.
+* Privacy tools (Ad Block Plus/RequestPolicy/NoScript/Cookie Monster/RefControl)
+  built-in.
 
 == Later Goals ==
 
+* User styles/scripts.
 * Bookmark editing and two-way synchronization.
 * (Relatively) secure password management. Maybe using TPM or similar.
-* Privacy tools (Ad Block Plus/RequestPolicy/NoScript/Cookie Monster/RefControl)
-  built-in.
-* User styles/scripts.
-* HTTPS enforcement.
-* Remove yaml requirement and store config in SQLite DB.
-* Run in Python 3.
+* Run in Python 3 (waiting on M2Crypto).
 

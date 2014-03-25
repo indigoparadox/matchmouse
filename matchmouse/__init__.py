@@ -17,5 +17,7 @@ You should have received a copy of the GNU General Public License along
 with MatchMouse.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-__all__ = ['browser','storage','syncher','syncstorage']
+__all__ = [
+   'browser','downloads','options''storage','syncher','syncstorage','tab'
+]
 
