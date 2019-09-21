@@ -20,10 +20,10 @@ with MatchMouse.  If not, see <http://www.gnu.org/licenses/>.
 from distutils.core import setup
 
 setup(
-   name='matchmouse',
-   # TODO: Figure out a way to grab the repo revision or something.
-   version='0.1',
-   packages=['matchmouse'],
-   scripts=['matchm.py'],
+    name='matchmouse',
+    # TODO: Figure out a way to grab the repo revision or something.
+    version='0.1',
+    packages=['matchmouse'],
+    scripts=['matchm.py'],
 )
 

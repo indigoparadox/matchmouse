@@ -18,6 +18,6 @@ with MatchMouse.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 __all__ = [
-   'browser','downloads','options''storage','syncher','syncstorage','tab'
+    'browser','downloads','options''storage','syncher','syncstorage','tab'
 ]
 

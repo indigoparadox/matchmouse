@@ -23,13 +23,13 @@ from gi.repository import GObject
 
 def main():
 
-   GObject.threads_init()
+    GObject.threads_init()
 
-   logging.basicConfig( level=logging.DEBUG )
+    logging.basicConfig( level=logging.DEBUG )
 
-   #Gtk.gdk.threads_init()
-   browser.MatchMouseBrowser()
+    #Gtk.gdk.threads_init()
+    browser.MatchMouseBrowser()
 
 if '__main__' == __name__:
-   main()
+    main()
 
